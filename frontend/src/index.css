@@ -1,0 +1,25 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f5f7fa 0%, #eef2f6 100%);
+  background-attachment: fixed;
+}
+
+.bg-grid {
+  background-image: linear-gradient(rgba(15, 27, 45, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 27, 45, 0.04) 1px, transparent 1px);
+  background-size: 80px 80px;
+}
+
+input, select, textarea {
+  outline: none;
+}
