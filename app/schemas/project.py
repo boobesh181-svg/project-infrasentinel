@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from app.schemas.material_entry import MaterialEntryOut
+
 
 class ProjectCreate(BaseModel):
     name: str
@@ -23,3 +25,13 @@ class ProjectOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class ProjectListOut(BaseModel):
+    total: int
+    items: list[ProjectOut]
+
+
+class ProjectMaterialEntryListOut(BaseModel):
+    total: int
+    items: list[MaterialEntryOut]

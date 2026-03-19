@@ -9,6 +9,7 @@ from app.core.dependencies import get_current_user, get_db, require_roles
 from app.models.user import User, UserRole
 from app.schemas.material_entry import MaterialEntryCreate, MaterialEntryOut
 from app.models.material_entry import MaterialEntry
+from app.services.audit_service import AuditService
 from app.services.material_service import MaterialService
 from app.services.workflow_service import WorkflowService
 
@@ -49,16 +50,28 @@ def create_material_entry(
 ) -> MaterialEntryOut:
     service = MaterialService(db)
     try:
-        return service.create_entry(
+        created = service.create_entry(
             project_id=payload.project_id,
             user_id=user.id,
             material_name=payload.material_name,
             quantity=payload.quantity,
+            supplier_name=payload.supplier_name,
+            supplier_email=payload.supplier_email,
             factor_version_snapshot=payload.factor_version_snapshot,
             factor_value_snapshot=payload.factor_value_snapshot,
             factor_unit_snapshot=payload.factor_unit_snapshot,
             factor_source_snapshot=payload.factor_source_snapshot,
         )
+        with db.begin_nested():
+            AuditService(db).log(
+                performed_by_id=user.id,
+                entity_type="MaterialEntry",
+                entity_id=created.id,
+                action="CREATE_ENTRY",
+                previous_state={},
+                new_state={"id": str(created.id), "status": created.status.value},
+            )
+        return created
     except ValueError as exc:
         _handle_transition_error(exc, user=user, entry_id=payload.project_id)
 
@@ -121,7 +134,7 @@ def submit_entry(
 def verify_entry(
     entry_id: UUID,
     db: Session = Depends(get_db),
-    user: User = Depends(require_roles(UserRole.VERIFIER)),
+    user: User = Depends(require_roles(UserRole.VERIFIER, UserRole.ADMIN, UserRole.AUDITOR)),
 ) -> MaterialEntryOut:
     service = WorkflowService(db)
     try:

@@ -11,6 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
 if TYPE_CHECKING:
+    from app.models.bim_model import BIMModel
     from app.models.material_entry import MaterialEntry
     from app.models.organization import Organization
     from app.models.user import User
@@ -51,5 +52,8 @@ class Project(Base):
         back_populates="projects", foreign_keys=[created_by_id]
     )
     material_entries: Mapped[List["MaterialEntry"]] = relationship(
+        back_populates="project", passive_deletes=True
+    )
+    bim_models: Mapped[List["BIMModel"]] = relationship(
         back_populates="project", passive_deletes=True
     )

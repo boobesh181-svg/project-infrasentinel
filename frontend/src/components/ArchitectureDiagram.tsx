@@ -12,7 +12,7 @@ const NODES = [
 
 const ArchitectureDiagram = () => {
   return (
-    <div className="mt-10 rounded-3xl border border-cloud bg-white p-8">
+    <div className="mt-10 rounded-3xl border border-[#d9e5fb] bg-white p-8 shadow-[0_20px_40px_rgba(20,40,90,0.10)]">
       <div className="space-y-4">
         {NODES.map((node, index) => (
           <motion.div
@@ -23,13 +23,13 @@ const ArchitectureDiagram = () => {
             transition={{ duration: 0.4, delay: index * 0.08 }}
             className="flex items-center gap-4"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full border border-cloud bg-mist text-xs font-semibold text-ink">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-[#bcd2ff] bg-[#edf4ff] text-xs font-semibold text-[#0f4cc9]">
               {index + 1}
             </span>
-            <div className="flex-1 rounded-2xl border border-cloud bg-mist/70 px-5 py-3">
-              <p className="text-sm font-semibold text-ink">{node}</p>
+              <div className="flex-1 rounded-2xl border border-[#d9e5fb] bg-[#f8fbff] px-5 py-3">
+                <p className="text-sm font-semibold text-[#12274e]">{node}</p>
             </div>
-            {index < NODES.length - 1 ? <span className="h-8 w-px bg-cloud" /> : null}
+              {index < NODES.length - 1 ? <span className="h-8 w-px bg-[#d9e5fb]" /> : null}
           </motion.div>
         ))}
       </div>

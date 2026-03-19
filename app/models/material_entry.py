@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, Enum as SqlEnum, ForeignKey, Index, Numeric, String
+from sqlalchemy import Boolean, DateTime, Enum as SqlEnum, ForeignKey, Index, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -12,6 +12,7 @@ from app.db.base import Base
 class MaterialStatus(str, Enum):
     DRAFT = "DRAFT"
     SUBMITTED = "SUBMITTED"
+    UNDER_REVIEW = "UNDER_REVIEW"
     VERIFIED = "VERIFIED"
     APPROVED = "APPROVED"
     LOCKED = "LOCKED"
@@ -37,6 +38,8 @@ class MaterialEntry(Base):
     )
     material_name: Mapped[str] = mapped_column(String(255), nullable=False)
     quantity: Mapped[float] = mapped_column(Numeric(14, 6), nullable=False)
+    supplier_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    supplier_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     factor_version_snapshot: Mapped[int] = mapped_column(nullable=False)
     factor_value_snapshot: Mapped[float] = mapped_column(
@@ -68,7 +71,13 @@ class MaterialEntry(Base):
         ForeignKey("users.id", ondelete="RESTRICT"),
         nullable=True,
     )
+    submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     locked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    audit_required: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    temporal_anomaly: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    bim_discrepancy_score: Mapped[float | None] = mapped_column(Numeric(10, 4))
+    bim_validation_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

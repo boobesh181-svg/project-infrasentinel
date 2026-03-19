@@ -29,10 +29,10 @@ const UseCaseCards = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.4 }}
           transition={{ duration: 0.4, delay: index * 0.05 }}
-          className="group rounded-2xl border border-cloud bg-mist/60 p-6 transition hover:-translate-y-1 hover:shadow-soft"
+          className="group rounded-2xl border border-[#d9e5fb] bg-[#f8fbff] p-6 shadow-[0_10px_24px_rgba(20,40,90,0.08)] transition hover:-translate-y-1 hover:border-[#bfd4ff]"
         >
-          <p className="text-lg font-semibold text-ink">{item.title}</p>
-          <p className="mt-3 text-sm text-slate group-hover:text-ink">{item.detail}</p>
+          <p className="text-lg font-semibold text-[#12274e]">{item.title}</p>
+          <p className="mt-3 text-sm text-[#4b628f] group-hover:text-[#0f4cc9]">{item.detail}</p>
         </motion.div>
       ))}
     </div>

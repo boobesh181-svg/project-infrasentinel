@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import logging
 import time
+from uuid import uuid4
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -43,6 +44,7 @@ async def redoc_html():
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
 	start = time.perf_counter()
+	request_id = request.headers.get("x-request-id") or str(uuid4())
 	user_id = None
 	user_email = None
 	user_org = None
@@ -68,7 +70,8 @@ async def log_requests(request: Request, call_next):
 	timestamp = datetime.now(timezone.utc).isoformat()
 
 	logger.info(
-		"REQUEST time=%s method=%s path=%s query=%s user_id=%s user_email=%s organization_id=%s status_code=%s duration_ms=%s",
+		"REQUEST request_id=%s time=%s method=%s path=%s query=%s user_id=%s user_email=%s organization_id=%s status_code=%s duration_ms=%s",
+		request_id,
 		timestamp,
 		request.method,
 		request.url.path,

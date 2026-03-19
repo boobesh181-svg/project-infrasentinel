@@ -12,8 +12,13 @@ from sqlalchemy.orm import Session
 from app.models.evidence_file import EvidenceFile
 from app.models.material_entry import MaterialEntry, MaterialStatus
 from app.models.user import User, UserRole
+from app.services.acknowledgement_service import AcknowledgementService
 from app.services.audit_service import AuditService
+from app.services.evidence_integrity_service import EvidenceIntegrityService
+from app.services.evidence_rule_engine import EvidenceRuleEngine
 from app.services.notification_service import NotificationService
+from app.services.risk_engine import RiskEngine
+from app.services.temporal_integrity_service import TemporalIntegrityService
 
 
 class WorkflowService:
@@ -21,6 +26,11 @@ class WorkflowService:
         self._session = session
         self._audit = AuditService(session)
         self._notifications = NotificationService(session)
+        self._ack_service = AcknowledgementService(session)
+        self._integrity_service = EvidenceIntegrityService(session)
+        self._rule_engine = EvidenceRuleEngine(session)
+        self._temporal_service = TemporalIntegrityService(session)
+        self._risk_engine = RiskEngine(session)
 
     def submit(self, *, entry_id: UUID, actor_user_id: UUID) -> MaterialEntry:
         with self._session.begin():
@@ -35,6 +45,7 @@ class WorkflowService:
 
             previous_state = self._snapshot(entry)
             entry.status = MaterialStatus.SUBMITTED
+            entry.submitted_at = datetime.now(timezone.utc)
 
             self._notifications.create_notifications_for_submission(
                 entry_id=entry.id,
@@ -45,7 +56,7 @@ class WorkflowService:
                 performed_by_id=actor.id,
                 entity_type="MaterialEntry",
                 entity_id=entry.id,
-                action="SUBMIT",
+                action="SUBMIT_ENTRY",
                 previous_state=previous_state,
                 new_state=self._snapshot(entry),
             )
@@ -81,11 +92,26 @@ class WorkflowService:
                     detail="Evidence integrity verification failed.",
                 )
 
+            complete, missing = self._rule_engine.validate_for_verification(entry=entry)
+            if not complete:
+                missing_str = ", ".join(missing)
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"Verification blocked: missing required evidence types: {missing_str}",
+                )
+
+            self._integrity_service.refresh_duplicate_flags()
+
+            if not self._ack_service.required_acknowledgements_completed(entry=entry):
+                raise ValueError("Required evidence acknowledgements are incomplete")
+
             if not self._notifications.notifications_ready_for_verification(
                 entry_id=entry.id
             ):
                 raise ValueError("Entry has unresolved or disputed notifications")
-            if actor.role != UserRole.VERIFIER:
+            if entry.audit_required and actor.role not in {UserRole.ADMIN, UserRole.AUDITOR}:
+                raise ValueError("Audited entries can only be reviewed by ADMIN or AUDITOR")
+            if actor.role not in {UserRole.VERIFIER, UserRole.ADMIN, UserRole.AUDITOR}:
                 raise ValueError("Only verifier can verify")
             if entry.created_by_id == actor.id:
                 raise ValueError("Creator cannot verify their own entry")
@@ -93,12 +119,15 @@ class WorkflowService:
             previous_state = self._snapshot(entry)
             entry.status = MaterialStatus.VERIFIED
             entry.verified_by_id = actor.id
+            entry.verified_at = datetime.now(timezone.utc)
+            self._temporal_service.evaluate_entry(entry=entry)
+            self._risk_engine.score_entry(entry=entry)
 
             self._audit.log(
                 performed_by_id=actor.id,
                 entity_type="MaterialEntry",
                 entity_id=entry.id,
-                action="verified",
+                action="VERIFY_ENTRY",
                 previous_state=previous_state,
                 new_state=self._snapshot(entry),
             )
@@ -112,7 +141,7 @@ class WorkflowService:
                 raise ValueError("Locked entries are immutable")
             if entry.status != MaterialStatus.VERIFIED:
                 raise ValueError("Only VERIFIED entries can be approved")
-            if actor.role != UserRole.APPROVER:
+            if actor.role not in {UserRole.APPROVER, UserRole.ADMIN, UserRole.AUDITOR}:
                 raise ValueError("Only approver can approve")
             if entry.verified_by_id == actor.id:
                 raise ValueError("Approver cannot be the verifier")
@@ -125,7 +154,7 @@ class WorkflowService:
                 performed_by_id=actor.id,
                 entity_type="MaterialEntry",
                 entity_id=entry.id,
-                action="APPROVE",
+                action="APPROVE_ENTRY",
                 previous_state=previous_state,
                 new_state=self._snapshot(entry),
             )
@@ -148,7 +177,7 @@ class WorkflowService:
                 performed_by_id=actor.id,
                 entity_type="MaterialEntry",
                 entity_id=entry.id,
-                action="LOCK",
+                action="LOCK_ENTRY",
                 previous_state=previous_state,
                 new_state=self._snapshot(entry),
             )
@@ -174,6 +203,8 @@ class WorkflowService:
             "project_id": self._serialize(entry.project_id),
             "material_name": entry.material_name,
             "quantity": float(entry.quantity),
+            "supplier_name": entry.supplier_name,
+            "supplier_email": entry.supplier_email,
             "factor_version_snapshot": entry.factor_version_snapshot,
             "factor_value_snapshot": float(entry.factor_value_snapshot),
             "factor_unit_snapshot": entry.factor_unit_snapshot,
@@ -182,7 +213,13 @@ class WorkflowService:
             "created_by_id": self._serialize(entry.created_by_id),
             "verified_by_id": self._serialize(entry.verified_by_id),
             "approved_by_id": self._serialize(entry.approved_by_id),
+            "submitted_at": self._serialize(entry.submitted_at),
+            "verified_at": self._serialize(entry.verified_at),
             "locked_at": self._serialize(entry.locked_at),
+            "audit_required": entry.audit_required,
+            "temporal_anomaly": entry.temporal_anomaly,
+            "bim_discrepancy_score": self._serialize(entry.bim_discrepancy_score),
+            "bim_validation_status": entry.bim_validation_status,
             "created_at": self._serialize(entry.created_at),
         }
 

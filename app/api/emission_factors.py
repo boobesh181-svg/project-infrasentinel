@@ -1,23 +1,34 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user, get_db, require_roles
 from app.models.emission_factor import EmissionFactor
 from app.models.user import User, UserRole
-from app.schemas.emission_factor import EmissionFactorCreate, EmissionFactorOut
+from app.schemas.emission_factor import EmissionFactorCreate, EmissionFactorListOut, EmissionFactorOut
 from app.services.audit_service import AuditService
 
 router = APIRouter(prefix="/emission-factors", tags=["emission-factors"])
 
 
-@router.get("", response_model=list[EmissionFactorOut])
+@router.get("", response_model=EmissionFactorListOut)
 def list_emission_factors(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
-) -> list[EmissionFactorOut]:
-    stmt = select(EmissionFactor).order_by(EmissionFactor.material_name.asc())
-    return list(db.execute(stmt).scalars().all())
+    limit: int = Query(50, ge=1),
+    offset: int = Query(0, ge=0),
+) -> EmissionFactorListOut:
+    items_stmt = (
+        select(EmissionFactor)
+        .order_by(EmissionFactor.material_name.asc())
+        .limit(limit)
+        .offset(offset)
+    )
+    count_stmt = select(func.count(EmissionFactor.id))
+    return EmissionFactorListOut(
+        total=int(db.execute(count_stmt).scalar_one()),
+        items=list(db.execute(items_stmt).scalars().all()),
+    )
 
 
 @router.post("", response_model=EmissionFactorOut)

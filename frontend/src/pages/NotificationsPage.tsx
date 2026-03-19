@@ -4,8 +4,11 @@ import {
   disputeNotification,
   fetchNotifications
 } from "../api/notifications";
+import Badge from "../components/ui/Badge";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import { Table, TableCell, TableRow } from "../components/ui/Table";
 import { Notification } from "../types/notification";
-import StatusPill from "../components/StatusPill";
 
 const NotificationsPage = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -14,8 +17,8 @@ const NotificationsPage = () => {
 
   const loadNotifications = async () => {
     try {
-      const data = await fetchNotifications();
-      setNotifications(data);
+      const response = await fetchNotifications();
+      setNotifications(response);
     } catch (err: any) {
       setError(err?.message ?? "Unable to load notifications.");
     }
@@ -25,11 +28,11 @@ const NotificationsPage = () => {
     void loadNotifications();
   }, []);
 
-  const handleResponse = async (notificationId: string, response: "ack" | "dispute") => {
+  const onAction = async (notificationId: string, action: "ack" | "dispute") => {
     setIsLoading(true);
     setError(null);
     try {
-      if (response === "ack") {
+      if (action === "ack") {
         await acknowledgeNotification(notificationId);
       } else {
         await disputeNotification(notificationId);
@@ -43,51 +46,54 @@ const NotificationsPage = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-xs uppercase tracking-[0.3em] text-slate">Notifications</p>
-        <h2 className="text-2xl font-semibold text-ink">Action Required</h2>
-      </div>
-
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
-
-      <div className="rounded-xl border border-cloud bg-white/90 p-6 shadow-soft">
-        <div className="space-y-4">
+    <div className="space-y-4">
+      <Card title="Notifications" subtitle="Review deadlines and take action on pending alerts.">
+        <Table headers={["Entry", "Message", "Deadline", "Status", "Actions"]}>
           {notifications.map((notification) => (
-            <div key={notification.id} className="rounded-lg border border-cloud p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-ink">{notification.entity_type}</p>
-                  <p className="text-xs text-slate">Entry {notification.entity_id}</p>
-                  <p className="text-xs text-slate">
-                    Deadline {new Date(notification.response_deadline).toLocaleString()}
-                  </p>
+            <TableRow key={notification.id}>
+              <TableCell>{notification.entity_id.slice(0, 8)}</TableCell>
+              <TableCell className="font-medium text-slate-900">{notification.entity_type}</TableCell>
+              <TableCell>{new Date(notification.response_deadline).toLocaleString()}</TableCell>
+              <TableCell>
+                <Badge label={notification.response_type} />
+              </TableCell>
+              <TableCell>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    disabled={isLoading || notification.response_type !== "NONE"}
+                    onClick={() => onAction(notification.id, "ack")}
+                  >
+                    Acknowledge
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={isLoading || notification.response_type !== "NONE"}
+                    onClick={() => onAction(notification.id, "dispute")}
+                  >
+                    Dispute
+                  </Button>
                 </div>
-                <StatusPill label={notification.response_type} />
-              </div>
-              <div className="mt-4 flex flex-wrap gap-3">
-                <button
-                  onClick={() => handleResponse(notification.id, "ack")}
-                  disabled={isLoading || notification.response_type !== "NONE"}
-                  className="rounded-md bg-ink px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
-                >
-                  Acknowledge
-                </button>
-                <button
-                  onClick={() => handleResponse(notification.id, "dispute")}
-                  disabled={isLoading || notification.response_type !== "NONE"}
-                  className="rounded-md border border-cloud px-4 py-2 text-xs font-semibold text-ink disabled:opacity-50"
-                >
-                  Dispute
-                </button>
-              </div>
-            </div>
+              </TableCell>
+            </TableRow>
           ))}
+
           {notifications.length === 0 ? (
-            <p className="text-sm text-slate">No notifications pending.</p>
+            <TableRow>
+              <td colSpan={5} className="border-b border-slate-100 px-4 py-6 text-center text-slate-500">
+                No notifications.
+              </td>
+            </TableRow>
           ) : null}
+        </Table>
+      </Card>
+
+      {error ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">
+          {error}
         </div>
-      </div>
+      ) : null}
     </div>
   );
 };

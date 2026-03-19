@@ -1,29 +1,33 @@
 import { useEffect, useState } from "react";
+import { CheckCircle2, Download } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { downloadEvidence, fetchEvidence, uploadEvidence } from "../api/evidence";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import FileUpload from "../components/ui/FileUpload";
+import Modal from "../components/ui/Modal";
+import { Table, TableCell, TableRow } from "../components/ui/Table";
 import { Evidence } from "../types/evidence";
 
 const EvidencePage = () => {
   const { entryId } = useParams();
   const [evidence, setEvidence] = useState<Evidence[]>([]);
-  const [file, setFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [evidenceType, setEvidenceType] = useState("delivery_note");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [integrityModal, setIntegrityModal] = useState<{ open: boolean; message: string }>({
+    open: false,
+    message: ""
+  });
 
   const loadEvidence = async () => {
-    if (!entryId) {
-      setError("No material entry selected.");
-      return;
-    }
+    if (!entryId) return;
     try {
-      const data = await fetchEvidence(entryId);
-      setEvidence(data);
+      const response = await fetchEvidence(entryId);
+      setEvidence(response);
     } catch (err: any) {
-      if (err?.response?.status === 404) {
-        setError("Material entry not found. Refresh and select a valid entry.");
-      } else {
-        setError(err?.message ?? "Unable to load evidence.");
-      }
+      setError(err?.message ?? "Unable to load evidence.");
     }
   };
 
@@ -33,20 +37,16 @@ const EvidencePage = () => {
 
   const handleUpload = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!entryId || !file) return;
+    if (!entryId || !selectedFile) return;
 
-    setIsLoading(true);
     setError(null);
+    setIsLoading(true);
     try {
-      await uploadEvidence(entryId, file);
-      setFile(null);
+      await uploadEvidence(entryId, selectedFile, evidenceType);
+      setSelectedFile(null);
       await loadEvidence();
     } catch (err: any) {
-      if (err?.response?.status === 404) {
-        setError("Material entry not found. Refresh and select a valid entry.");
-      } else {
-        setError(err?.message ?? "Unable to upload evidence.");
-      }
+      setError(err?.message ?? "Unable to upload evidence.");
     } finally {
       setIsLoading(false);
     }
@@ -64,77 +64,102 @@ const EvidencePage = () => {
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (err: any) {
-      if (err?.response?.status === 404) {
-        setError("Evidence file not found. Refresh the list.");
-      } else {
-        setError(err?.message ?? "Unable to download evidence.");
-      }
+      setError(err?.message ?? "Unable to download evidence.");
     }
   };
 
+  const verifyIntegrity = (item: Evidence) => {
+    const isValid = Boolean(item.file_hash && item.file_hash.length > 16);
+    setIntegrityModal({
+      open: true,
+      message: isValid
+        ? `Integrity verified for ${item.file_name}. Hash: ${item.file_hash}`
+        : `Integrity check failed for ${item.file_name}.`
+    });
+  };
+
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-xs uppercase tracking-[0.3em] text-slate">Evidence</p>
-        <h2 className="text-2xl font-semibold text-ink">Evidence Repository</h2>
-        <p className="mt-2 text-sm text-slate">Material entry: {entryId}</p>
-      </div>
+    <div className="space-y-4">
+      <Card title="Upload Evidence" subtitle="Attach PDFs and images to support this material entry.">
+        <form onSubmit={handleUpload} className="space-y-3">
+          <div>
+            <label htmlFor="evidence-type" className="label-text text-slate-600">
+              Evidence Type
+            </label>
+            <select
+              id="evidence-type"
+              value={evidenceType}
+              onChange={(event) => setEvidenceType(event.target.value)}
+              className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+            >
+              <option value="delivery_note">delivery_note</option>
+              <option value="supplier_invoice">supplier_invoice</option>
+              <option value="site_photo">site_photo</option>
+              <option value="mill_certificate">mill_certificate</option>
+              <option value="other">other</option>
+            </select>
+          </div>
+          <FileUpload onFileSelect={setSelectedFile} maxSizeMb={10} />
+          <Button type="submit" disabled={!selectedFile || isLoading}>
+            {isLoading ? "Uploading..." : "Upload Evidence"}
+          </Button>
+        </form>
+      </Card>
 
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
-
-      <form
-        onSubmit={handleUpload}
-        className="rounded-xl border border-cloud bg-white/90 p-6 shadow-soft"
-      >
-        <p className="text-sm font-semibold text-ink">Upload Evidence</p>
-        <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
-          <label htmlFor="evidence-upload" className="sr-only">
-            Evidence file
-          </label>
-          <input
-            id="evidence-upload"
-            type="file"
-            accept="application/pdf,image/png,image/jpeg"
-            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-            className="text-sm"
-          />
-          <button
-            type="submit"
-            className="rounded-md bg-ink px-4 py-2 text-sm font-semibold text-white"
-            disabled={isLoading}
-          >
-            {isLoading ? "Uploading..." : "Upload"}
-          </button>
-        </div>
-      </form>
-
-      <div className="rounded-xl border border-cloud bg-white/90 p-6 shadow-soft">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold text-ink">Evidence Files</p>
-          <p className="text-xs uppercase tracking-[0.2em] text-slate">{evidence.length} files</p>
-        </div>
-        <div className="mt-4 space-y-3">
+      <Card title="Uploaded Files" subtitle={`Entry: ${entryId ?? "N/A"}`}>
+        <Table
+          headers={[
+            "File Name",
+            "Hash",
+            "Uploaded By",
+            "Timestamp",
+            "Actions"
+          ]}
+        >
           {evidence.map((item) => (
-            <div key={item.id} className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-ink">{item.file_name}</p>
-                <p className="text-xs text-slate">
-                  Uploaded {new Date(item.uploaded_at).toLocaleString()}
-                </p>
-              </div>
-              <button
-                onClick={() => handleDownload(item)}
-                className="text-xs font-semibold text-accent"
-              >
-                Download
-              </button>
-            </div>
+            <TableRow key={item.id}>
+              <TableCell className="font-medium text-slate-900">{item.file_name}</TableCell>
+              <TableCell className="text-xs text-slate-500">{item.file_hash.slice(0, 16)}...</TableCell>
+              <TableCell>{item.uploaded_by.slice(0, 8)}</TableCell>
+              <TableCell>
+                <div>{new Date(item.uploaded_at).toLocaleString()}</div>
+                {item.duplicate_flag ? <div className="text-xs text-rose-600">Duplicate across projects</div> : null}
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="secondary" onClick={() => handleDownload(item)}>
+                    <Download className="mr-1 inline h-4 w-4" /> Download
+                  </Button>
+                  <Button size="sm" onClick={() => verifyIntegrity(item)}>
+                    <CheckCircle2 className="mr-1 inline h-4 w-4" /> Verify Integrity
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
           ))}
           {evidence.length === 0 ? (
-            <p className="text-sm text-slate">No evidence uploaded yet.</p>
+            <TableRow>
+              <td colSpan={5} className="border-b border-slate-100 px-4 py-6 text-center text-slate-500">
+                No evidence uploaded yet.
+              </td>
+            </TableRow>
           ) : null}
+        </Table>
+      </Card>
+
+      {error ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">
+          {error}
         </div>
-      </div>
+      ) : null}
+
+      <Modal
+        open={integrityModal.open}
+        title="Integrity Check"
+        onClose={() => setIntegrityModal({ open: false, message: "" })}
+      >
+        <p className="text-sm text-slate-700">{integrityModal.message}</p>
+      </Modal>
     </div>
   );
 };

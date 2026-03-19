@@ -37,3 +37,8 @@ class EmissionFactorOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class EmissionFactorListOut(BaseModel):
+    total: int
+    items: list[EmissionFactorOut]

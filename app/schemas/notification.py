@@ -18,3 +18,8 @@ class NotificationOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class NotificationListOut(BaseModel):
+    total: int
+    items: list[NotificationOut]

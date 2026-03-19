@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { fetchProject, fetchProjectEntries } from "../api/projects";
-import { Project } from "../types/project";
+import Badge from "../components/ui/Badge";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import { Table, TableCell, TableRow } from "../components/ui/Table";
 import { MaterialEntry } from "../types/materialEntry";
+import { Project } from "../types/project";
 
 const ProjectDetailPage = () => {
   const { projectId } = useParams();
@@ -10,10 +14,13 @@ const ProjectDetailPage = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [entries, setEntries] = useState<MaterialEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!projectId) return;
     const load = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
         const [projectData, entryData] = await Promise.all([
           fetchProject(projectId),
@@ -22,91 +29,73 @@ const ProjectDetailPage = () => {
         setProject(projectData);
         setEntries(entryData);
       } catch (err: any) {
-        if (err?.response?.status === 404) {
-          setError("Project not found. Refresh the list and try again.");
-        } else {
-          setError(err?.message ?? "Unable to load project.");
-        }
+        setError(err?.message ?? "Unable to load project.");
+      } finally {
+        setIsLoading(false);
       }
     };
+
     void load();
   }, [projectId]);
 
   if (!projectId) {
-    return <p className="text-sm text-slate">Project not selected.</p>;
+    return <p className="text-sm text-slate-500">No project selected.</p>;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-slate">Project Detail</p>
-          <h2 className="text-2xl font-semibold text-ink">{project?.name ?? "Loading"}</h2>
-          <p className="mt-2 text-sm text-slate">{project?.location}</p>
-        </div>
-        <button
-          onClick={() => navigate(`/app/projects/${projectId}/material-entries/new`)}
-          className="rounded-md bg-ink px-4 py-2 text-sm font-semibold text-white"
-        >
-          Create Material Entry
-        </button>
-      </div>
-
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
-
-      <div className="rounded-xl border border-cloud bg-white/90 p-6 shadow-soft">
-        <p className="text-sm font-semibold text-ink">Project Information</p>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
+    <div className="space-y-4">
+      <Card>
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-slate">Reporting Window</p>
-            <p className="text-sm text-ink">
-              {project
-                ? `${project.reporting_period_start} - ${project.reporting_period_end}`
-                : "-"}
+            <h2 className="section-title text-slate-900">{project?.name ?? "Project"}</h2>
+            <p className="mt-1 text-sm text-slate-500">{project?.location ?? "Location"}</p>
+            <p className="mt-1 text-xs text-slate-500">
+              Reporting Period: {project?.reporting_period_start} to {project?.reporting_period_end}
             </p>
           </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-slate">Created</p>
-            <p className="text-sm text-ink">
-              {project ? new Date(project.created_at).toLocaleString() : "-"}
-            </p>
-          </div>
+          <Button onClick={() => navigate(`/app/projects/${projectId}/material-entries/new`)}>
+            Add Material Entry
+          </Button>
+          <Button variant="secondary" onClick={() => navigate(`/app/projects/${projectId}/bim`)}>
+            BIM Validation
+          </Button>
         </div>
-      </div>
+      </Card>
 
-      <div className="rounded-xl border border-cloud bg-white/90 p-6 shadow-soft">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold text-ink">Material Entries</p>
-          <p className="text-xs uppercase tracking-[0.2em] text-slate">{entries.length} total</p>
+      {error ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">
+          {error}
         </div>
-        <table className="mt-4 w-full text-left text-sm">
-          <thead className="text-xs uppercase tracking-[0.2em] text-slate">
-            <tr>
-              <th className="pb-3">Entry ID</th>
-              <th className="pb-3">Material</th>
-              <th className="pb-3">Quantity</th>
-              <th className="pb-3">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-cloud">
-            {entries.map((entry) => (
-              <tr
-                key={entry.id}
-                className="cursor-pointer hover:bg-mist/70"
-                onClick={() => navigate(`/app/material-entries/${entry.id}`)}
-              >
-                <td className="py-3 text-ink">{entry.id.slice(0, 8)}</td>
-                <td className="py-3 text-ink">{entry.material_name}</td>
-                <td className="py-3 text-slate">{entry.quantity}</td>
-                <td className="py-3 text-slate">{entry.status}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {entries.length === 0 ? (
-          <p className="mt-4 text-sm text-slate">No material entries logged yet.</p>
-        ) : null}
-      </div>
+      ) : null}
+
+      <Card title="Material Entries" subtitle="Click an entry to manage workflow and evidence.">
+        <Table headers={["Entry", "Material", "Quantity", "Calculated Emission", "Status", "Actions"]}>
+          {isLoading ? (
+            <TableRow>
+              <td colSpan={6} className="border-b border-slate-100 px-4 py-6 text-center text-slate-500">
+                Loading entries...
+              </td>
+            </TableRow>
+          ) : (
+            entries.map((entry) => (
+              <TableRow key={entry.id}>
+                <TableCell>{entry.id.slice(0, 8)}</TableCell>
+                <TableCell className="font-medium text-slate-900">{entry.material_name}</TableCell>
+                <TableCell>{entry.quantity}</TableCell>
+                <TableCell>{entry.calculated_emission.toFixed(2)}</TableCell>
+                <TableCell>
+                  <Badge label={entry.status} />
+                </TableCell>
+                <TableCell>
+                  <Button size="sm" variant="secondary" onClick={() => navigate(`/app/material-entries/${entry.id}`)}>
+                    View
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </Table>
+      </Card>
     </div>
   );
 };

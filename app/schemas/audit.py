@@ -17,3 +17,8 @@ class AuditLogOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class AuditLogListOut(BaseModel):
+    total: int
+    items: list[AuditLogOut]

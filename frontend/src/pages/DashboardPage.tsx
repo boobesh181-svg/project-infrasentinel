@@ -1,80 +1,148 @@
 import { useEffect, useState } from "react";
+import { AlertTriangle, BarChart3, CheckCheck, ClipboardList, FolderKanban, GitCompareArrows, Truck } from "lucide-react";
+import {
+  fetchAntiCorruptionSummary,
+  fetchEmissionsByMaterial,
+  fetchEmissionsByProject,
+  fetchEmissionsByTime
+} from "../api/analytics";
 import { fetchProjects } from "../api/projects";
 import { fetchNotifications } from "../api/notifications";
+import EmissionsChart from "../components/charts/EmissionsChart";
+import MaterialChart from "../components/charts/MaterialChart";
+import Card from "../components/ui/Card";
 import { Project } from "../types/project";
-import { Notification } from "../types/notification";
 
 const DashboardPage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [totalCo2, setTotalCo2] = useState(0);
+  const [verifiedEntries, setVerifiedEntries] = useState(0);
+  const [emissionsByProject, setEmissionsByProject] = useState<{ name: string; emissions: number }[]>([]);
+  const [emissionsByMaterial, setEmissionsByMaterial] = useState<{ name: string; value: number }[]>([]);
+  const [pendingApprovals, setPendingApprovals] = useState(0);
+  const [highRiskEntries, setHighRiskEntries] = useState(0);
+  const [bimDiscrepancies, setBimDiscrepancies] = useState(0);
+  const [pendingSupplierConfirmations, setPendingSupplierConfirmations] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
-        const [projectData, notificationData] = await Promise.all([
+        const [projectsResponse, notificationsResponse, byProject, byMaterial, byTime, antiCorruption] = await Promise.all([
           fetchProjects(),
-          fetchNotifications()
+          fetchNotifications(),
+          fetchEmissionsByProject(),
+          fetchEmissionsByMaterial(),
+          fetchEmissionsByTime(),
+          fetchAntiCorruptionSummary()
         ]);
-        setProjects(projectData);
-        setNotifications(notificationData);
+        setProjects(projectsResponse);
+        setPendingApprovals(
+          notificationsResponse.filter((notification) => notification.response_type === "NONE").length
+        );
+
+        setEmissionsByProject(
+          byProject.map((item) => ({
+            name: item.project_name,
+            emissions: Number(item.emissions.toFixed(2))
+          }))
+        );
+        setEmissionsByMaterial(
+          byMaterial.map((item) => ({
+            name: item.material_name,
+            value: Number(item.emissions.toFixed(2))
+          }))
+        );
+        setTotalCo2(byTime.reduce((sum, point) => sum + point.emissions, 0));
+        setVerifiedEntries(notificationsResponse.filter((notification) => notification.response_type !== "NONE").length);
+        setHighRiskEntries(antiCorruption.high_risk_entries);
+        setBimDiscrepancies(antiCorruption.projects_with_bim_discrepancies);
+        setPendingSupplierConfirmations(antiCorruption.entries_pending_supplier_confirmation);
       } catch (err: any) {
-        setError(err?.message ?? "Unable to load dashboard.");
+        setError(err?.message ?? "Unable to load dashboard data.");
+      } finally {
+        setIsLoading(false);
       }
     };
+
     void load();
   }, []);
 
-  const pendingNotifications = notifications.filter(
-    (notification) => notification.response_type === "NONE"
-  );
-
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-xs uppercase tracking-[0.3em] text-slate">Overview</p>
-        <h2 className="text-2xl font-semibold text-ink">Compliance Dashboard</h2>
+      {error ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">
+          {error}
+        </div>
+      ) : null}
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Card>
+          <p className="label-text text-slate-500">Total Projects</p>
+          <div className="mt-3 flex items-center justify-between">
+            <p className="text-3xl font-semibold text-slate-900">{isLoading ? "..." : projects.length}</p>
+            <FolderKanban className="h-5 w-5 text-blue-600" />
+          </div>
+        </Card>
+        <Card>
+          <p className="label-text text-slate-500">Verified Entries</p>
+          <div className="mt-3 flex items-center justify-between">
+            <p className="text-3xl font-semibold text-slate-900">{isLoading ? "..." : verifiedEntries}</p>
+            <CheckCheck className="h-5 w-5 text-emerald-600" />
+          </div>
+        </Card>
+        <Card>
+          <p className="label-text text-slate-500">Pending Approvals</p>
+          <div className="mt-3 flex items-center justify-between">
+            <p className="text-3xl font-semibold text-slate-900">{isLoading ? "..." : pendingApprovals}</p>
+            <ClipboardList className="h-5 w-5 text-amber-600" />
+          </div>
+        </Card>
+        <Card>
+          <p className="label-text text-slate-500">Total CO2 Recorded</p>
+          <div className="mt-3 flex items-center justify-between">
+            <p className="text-3xl font-semibold text-slate-900">
+              {isLoading ? "..." : totalCo2.toFixed(2)}
+            </p>
+            <BarChart3 className="h-5 w-5 text-indigo-600" />
+          </div>
+        </Card>
       </div>
 
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
-
-      <div className="grid gap-6 lg:grid-cols-4">
-        <div className="rounded-xl border border-cloud bg-white/90 p-5 shadow-soft">
-          <p className="text-xs uppercase tracking-[0.2em] text-slate">Projects</p>
-          <p className="mt-3 text-2xl font-semibold text-ink">{projects.length}</p>
-        </div>
-        <div className="rounded-xl border border-cloud bg-white/90 p-5 shadow-soft">
-          <p className="text-xs uppercase tracking-[0.2em] text-slate">Pending Notifications</p>
-          <p className="mt-3 text-2xl font-semibold text-ink">{pendingNotifications.length}</p>
-        </div>
-        <div className="rounded-xl border border-cloud bg-white/90 p-5 shadow-soft">
-          <p className="text-xs uppercase tracking-[0.2em] text-slate">Pending Verifications</p>
-          <p className="mt-3 text-2xl font-semibold text-ink">{pendingNotifications.length}</p>
-        </div>
-        <div className="rounded-xl border border-cloud bg-white/90 p-5 shadow-soft">
-          <p className="text-xs uppercase tracking-[0.2em] text-slate">Recent Activity</p>
-          <p className="mt-3 text-sm text-slate">Latest notifications loaded</p>
-        </div>
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <p className="label-text text-slate-500">High Risk Entries</p>
+          <div className="mt-3 flex items-center justify-between">
+            <p className="text-3xl font-semibold text-slate-900">{isLoading ? "..." : highRiskEntries}</p>
+            <AlertTriangle className="h-5 w-5 text-rose-600" />
+          </div>
+        </Card>
+        <Card>
+          <p className="label-text text-slate-500">BIM Discrepancy Projects</p>
+          <div className="mt-3 flex items-center justify-between">
+            <p className="text-3xl font-semibold text-slate-900">{isLoading ? "..." : bimDiscrepancies}</p>
+            <GitCompareArrows className="h-5 w-5 text-fuchsia-600" />
+          </div>
+        </Card>
+        <Card>
+          <p className="label-text text-slate-500">Pending Supplier Confirmation</p>
+          <div className="mt-3 flex items-center justify-between">
+            <p className="text-3xl font-semibold text-slate-900">{isLoading ? "..." : pendingSupplierConfirmations}</p>
+            <Truck className="h-5 w-5 text-cyan-600" />
+          </div>
+        </Card>
       </div>
 
-      <div className="rounded-xl border border-cloud bg-white/90 p-6 shadow-soft">
-        <p className="text-sm font-semibold text-ink">Recent Notifications</p>
-        <div className="mt-4 space-y-3">
-          {notifications.slice(0, 4).map((notification) => (
-            <div key={notification.id} className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-ink">{notification.entity_type}</p>
-                <p className="text-xs text-slate">Due {new Date(notification.response_deadline).toLocaleString()}</p>
-              </div>
-              <p className="text-xs uppercase tracking-[0.2em] text-slate">
-                {notification.response_type}
-              </p>
-            </div>
-          ))}
-          {notifications.length === 0 ? (
-            <p className="text-sm text-slate">No notifications available.</p>
-          ) : null}
-        </div>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <Card title="Emissions by Project" subtitle="Total calculated emission volume by project.">
+          <EmissionsChart data={emissionsByProject} />
+        </Card>
+        <Card title="Emissions by Material" subtitle="Material contribution to total emissions.">
+          <MaterialChart data={emissionsByMaterial} />
+        </Card>
       </div>
     </div>
   );

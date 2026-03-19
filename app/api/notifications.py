@@ -2,13 +2,13 @@ import logging
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user, get_db
 from app.models.notification import Notification, ResponseType
 from app.models.user import User
-from app.schemas.notification import NotificationOut
+from app.schemas.notification import NotificationListOut, NotificationOut
 from app.services.notification_service import NotificationService
 
 logger = logging.getLogger("infrasentinel")
@@ -16,20 +16,24 @@ logger = logging.getLogger("infrasentinel")
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
 
-@router.get("", response_model=list[NotificationOut])
+@router.get("", response_model=NotificationListOut)
 def list_notifications(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
     limit: int = Query(50, ge=1),
     offset: int = Query(0, ge=0),
-) -> list[NotificationOut]:
-    stmt = (
+) -> NotificationListOut:
+    items_stmt = (
         select(Notification)
         .where(Notification.notified_user_id == user.id)
         .limit(limit)
         .offset(offset)
     )
-    return list(db.execute(stmt).scalars().all())
+    count_stmt = select(func.count(Notification.id)).where(Notification.notified_user_id == user.id)
+    return NotificationListOut(
+        total=int(db.execute(count_stmt).scalar_one()),
+        items=list(db.execute(items_stmt).scalars().all()),
+    )
 
 
 @router.post("/{notification_id}/acknowledge", response_model=NotificationOut)

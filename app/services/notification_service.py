@@ -71,12 +71,15 @@ class NotificationService:
         project = self._get_project(entry.project_id)
         owner_id = project.created_by_id
         verifier = self._get_project_verifier(project.organization_id)
+        supplier = self._get_supplier_user(entry.supplier_email, project.organization_id)
 
         notified_at = datetime.now(timezone.utc)
         deadline_hours = self._notification_deadline_hours()
         response_deadline = notified_at + timedelta(hours=deadline_hours)
 
         recipients = {owner_id, verifier.id}
+        if supplier is not None:
+            recipients.add(supplier.id)
         notifications: list[Notification] = []
         for user_id in recipients:
             notification = self.create_notification(
@@ -95,6 +98,22 @@ class NotificationService:
                 new_state=self._snapshot(notification),
             )
         return notifications
+
+    def _get_supplier_user(self, supplier_email: str | None, organization_id: UUID) -> User | None:
+        if not supplier_email:
+            return None
+
+        stmt = (
+            select(User)
+            .where(
+                User.organization_id == organization_id,
+                User.email == supplier_email,
+                User.role == UserRole.SUPPLIER,
+                User.is_active.is_(True),
+            )
+            .limit(1)
+        )
+        return self._session.execute(stmt).scalar_one_or_none()
 
     def resolve_notification(
         self,

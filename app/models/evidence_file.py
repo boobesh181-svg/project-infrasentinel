@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, String, event
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Index, String, event
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -25,8 +25,11 @@ class EvidenceFile(Base):
     )
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
     file_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    content_type: Mapped[str] = mapped_column(String(100), nullable=False)
     file_size: Mapped[int] = mapped_column(BigInteger, nullable=False)
     file_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    evidence_type: Mapped[str] = mapped_column(String(64), nullable=False, default="other")
+    duplicate_flag: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     storage_path: Mapped[str] = mapped_column(String(500), nullable=False)
     uploaded_by: Mapped[UUID] = mapped_column(
         PgUUID(as_uuid=True),
@@ -36,11 +39,6 @@ class EvidenceFile(Base):
     uploaded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
-
-
-@event.listens_for(EvidenceFile, "before_update")
-def prevent_evidence_update(*_) -> None:
-    raise ValueError("Evidence files are immutable")
 
 
 @event.listens_for(EvidenceFile, "before_delete")
