@@ -37,13 +37,15 @@ services:
       - db
       - redis
     ports:
-      - "8000:8000"
+      - "8001:8001"
 
   celery-worker:
     build:
       context: .
       dockerfile: Dockerfile
     command: celery -A app.infra.celery_app.celery_app worker --loglevel=info
+    healthcheck:
+      disable: true
     environment:
       DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/infrasentinel
       JWT_SECRET_KEY: replace_with_secure_secret
@@ -64,7 +66,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: celery -A app.infra.celery_app.celery_app beat --loglevel=info
+    command: celery -A app.infra.celery_app.celery_app beat --loglevel=info --schedule=/tmp/celerybeat-schedule
+    healthcheck:
+      disable: true
     environment:
       DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/infrasentinel
       JWT_SECRET_KEY: replace_with_secure_secret

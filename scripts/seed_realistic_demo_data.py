@@ -14,6 +14,7 @@ from sqlalchemy import func, select
 from app.core.security import get_password_hash
 from app.db.session import SessionLocal
 from app.models.audit_log import AuditLog
+from app.services.signature_service import AuditChainHasher
 from app.models.emission_factor import EmissionFactor
 from app.models.evidence_file import EvidenceFile
 from app.models.material_entry import MaterialEntry, MaterialStatus
@@ -630,6 +631,20 @@ def seed_material_entries_and_related(
                 )
 
             for action, ts, actor, prev_state, new_state in audit_events:
+                # compute previous/current hash to satisfy non-nullable audit chain fields
+                latest = session.execute(
+                    select(AuditLog).order_by(AuditLog.timestamp.desc(), AuditLog.id.desc()).limit(1)
+                ).scalar_one_or_none()
+                previous_hash = latest.current_hash if latest is not None else AuditChainHasher.GENESIS_HASH
+                serialized = AuditChainHasher.serialize_event(
+                    entity_type="material_entry",
+                    entity_id=entry.id,
+                    action=action,
+                    performed_by=actor.id,
+                    timestamp=ts,
+                )
+                current_hash = AuditChainHasher.compute_hash(previous_hash=previous_hash, serialized_event=serialized)
+
                 session.add(
                     AuditLog(
                         entity_type="material_entry",
@@ -639,6 +654,8 @@ def seed_material_entries_and_related(
                         new_state=new_state,
                         performed_by_id=actor.id,
                         timestamp=ts,
+                        previous_hash=previous_hash,
+                        current_hash=current_hash,
                     )
                 )
                 counts["audit_logs"] += 1
@@ -691,6 +708,7 @@ def seed_material_entries_and_related(
                             material_entry_id=entry.id,
                             file_name=logical_name,
                             file_type=mime_type,
+                            content_type=mime_type,
                             file_size=size,
                             file_hash=digest,
                             storage_path=str(file_path),
@@ -709,12 +727,14 @@ def main() -> int:
 
     with SessionLocal() as session:
         has_data, counts = any_core_table_has_data(session)
-        if has_data:
-            print("Seed skipped: core tables are not empty.")
-            for key, value in counts.items():
-                print(f"{key}: {value}")
-            return 0
 
+    if has_data:
+        print("Seed skipped: core tables are not empty.")
+        for key, value in counts.items():
+            print(f"{key}: {value}")
+        return 0
+
+    with SessionLocal() as session:
         with session.begin():
             orgs = seed_organizations(session)
             users_by_email, _ = seed_users(session, orgs)
