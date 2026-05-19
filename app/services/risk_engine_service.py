@@ -9,17 +9,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.entry_risk_score import EntryRiskScore, RiskLevel
-from app.models.evidence_acknowledgement import (
-    AcknowledgementResponseType,
-    AcknowledgementRole,
-    EvidenceAcknowledgement,
-)
 from app.models.evidence_file import EvidenceFile
 from app.models.material_entry import MaterialEntry
 from app.models.project import Project
+from app.models.supplier_confirmation import SupplierConfirmation, SupplierConfirmationStatus
 from app.models.user import User
 from app.services.audit_service import AuditService
 from app.services.evidence_integrity_service import EvidenceIntegrityService
+from app.services.temporal_analysis_service import TemporalAnalysisService
 
 
 class RiskEngineService:
@@ -33,6 +30,7 @@ class RiskEngineService:
     def __init__(self, session: Session) -> None:
         self._session = session
         self._audit = AuditService(session)
+        self._temporal_analysis = TemporalAnalysisService()
 
     def calculate_risk(self, *, entry_id: UUID, actor: User) -> EntryRiskScore:
         entry = self._session.execute(
@@ -156,14 +154,20 @@ class RiskEngineService:
         if not entry.supplier_email:
             return False
 
-        ack_stmt = select(EvidenceAcknowledgement.id).where(
-            EvidenceAcknowledgement.material_entry_id == entry.id,
-            EvidenceAcknowledgement.role == AcknowledgementRole.SUPPLIER,
-            EvidenceAcknowledgement.response_type == AcknowledgementResponseType.ACK,
-        )
-        return self._session.execute(ack_stmt).first() is None
+        confirmation = self._session.execute(
+            select(SupplierConfirmation)
+            .where(SupplierConfirmation.entry_id == entry.id)
+            .order_by(SupplierConfirmation.created_at.desc())
+            .limit(1)
+        ).scalar_one_or_none()
+        if confirmation is None:
+            return True
+        return confirmation.status != SupplierConfirmationStatus.CONFIRMED
 
     def _has_temporal_anomaly(self, *, entry: MaterialEntry, organization_id: UUID) -> bool:
+        if self._temporal_analysis.detect_temporal_anomaly(entry=entry):
+            return True
+
         if entry.submitted_at and (entry.submitted_at - entry.created_at) < timedelta(seconds=10):
             fast_entries = self._session.execute(
                 select(MaterialEntry)

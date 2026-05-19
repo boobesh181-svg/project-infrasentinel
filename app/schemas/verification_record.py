@@ -1,11 +1,18 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 
 
 class VerificationActionRequest(BaseModel):
-    notes: str | None = None
+    notes: str | None = Field(default=None, max_length=1000)
+
+    @validator("notes")
+    def _normalize_notes(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        stripped = value.strip()
+        return stripped or None
 
 
 class VerificationRecordOut(BaseModel):

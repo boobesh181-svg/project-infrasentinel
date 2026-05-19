@@ -14,6 +14,8 @@ class AuditLogOut(BaseModel):
     previous_state: dict[str, Any]
     new_state: dict[str, Any]
     timestamp: datetime
+    previous_hash: str
+    current_hash: str
 
     class Config:
         orm_mode = True
@@ -22,3 +24,7 @@ class AuditLogOut(BaseModel):
 class AuditLogListOut(BaseModel):
     total: int
     items: list[AuditLogOut]
+
+
+class AuditRootHashOut(BaseModel):
+    root_hash: str | None

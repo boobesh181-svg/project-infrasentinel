@@ -1,7 +1,8 @@
 from app.models.attestation import Attestation
 from app.models.audit_log import AuditLog
+from app.models.bim_material import BIMMaterial
 from app.models.bim_material_estimate import BIMMaterialEstimate
-from app.models.bim_model import BIMModel, BIMFileFormat
+from app.models.bim_model import BIMModel, BIMFileFormat, BIMProcessingStatus
 from app.models.evidence_acknowledgement import (
     AcknowledgementResponseType,
     AcknowledgementRole,
@@ -20,15 +21,19 @@ from app.models.organization import Organization
 from app.models.project import Project
 from app.models.report import Report
 from app.models.supplier import Supplier
+from app.models.supplier_confirmation import SupplierConfirmation, SupplierConfirmationStatus
+from app.models.user_key import UserKey
 from app.models.user import User, UserRole
 from app.models.verification_record import VerificationRecord
 
 __all__ = [
     "Attestation",
     "AuditLog",
+    "BIMMaterial",
     "BIMMaterialEstimate",
     "BIMModel",
     "BIMFileFormat",
+    "BIMProcessingStatus",
     "EvidenceAcknowledgement",
     "AcknowledgementResponseType",
     "AcknowledgementRole",
@@ -48,7 +53,10 @@ __all__ = [
     "Report",
     "ResponseType",
     "Supplier",
+    "SupplierConfirmation",
+    "SupplierConfirmationStatus",
     "User",
+    "UserKey",
     "UserRole",
     "RiskLevel",
     "VerificationRecord",

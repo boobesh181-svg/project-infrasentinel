@@ -1,6 +1,8 @@
 import io
 import json
 import os
+import sys
+import types
 from datetime import date, datetime, timedelta, timezone
 from uuid import UUID, uuid4
 
@@ -15,12 +17,19 @@ from sqlalchemy.ext.compiler import compiles
 from app.core.dependencies import get_current_user, get_db
 from app.core.security import decode_access_token, get_password_hash
 from app.db.base import Base
+from app.models.emission_factor import EmissionFactor
+from app.models.bim_material import BIMMaterial
 from app.models.bim_material_estimate import BIMMaterialEstimate
+from app.models.bim_model import BIMModel, BIMProcessingStatus
 from app.models.material_entry import MaterialEntry
 from app.models.notification import Notification, ResponseType
 from app.models.organization import Organization
 from app.models.user import User, UserRole
 from app.main import app
+from app.services import anomaly_service
+from app.services.anomaly_service import detect_anomalies, train_anomaly_model
+from app.services.bim_service import parse_ifc_materials
+from app.services.emissions_service import EmissionsService
 
 
 @compiles(PgUUID, "sqlite")
@@ -892,3 +901,494 @@ def test_fraud_demo_scenario_flags_high_risk_entry(client, db_session):
     assert "Duplicate evidence detected" in payload["reasons"]
     assert "BIM discrepancy detected" in payload["reasons"]
     assert "Supplier confirmation missing" in payload["reasons"]
+
+
+def test_new_bim_upload_endpoint_extracts_materials(client, db_session, monkeypatch):
+    org, creator, _, _, _ = _seed_users(db_session)
+    db_session.commit()
+
+    creator_header = _auth_header(client, creator.email, "creator-pass")
+    project_id = _create_project(client, creator_header, name="New BIM Upload")
+
+    def _fake_task(model_id: str, _file_path: str) -> None:
+        model = db_session.get(BIMModel, UUID(model_id))
+        assert model is not None
+        model.processing_status = BIMProcessingStatus.PROCESSED
+        db_session.add_all(
+            [
+                BIMMaterial(
+                    bim_model_id=model.id,
+                    material_name="steel",
+                    quantity=110.0,
+                    unit="tons",
+                    source_element="IfcElementQuantity",
+                    confidence_score=0.9,
+                ),
+                BIMMaterial(
+                    bim_model_id=model.id,
+                    material_name="concrete",
+                    quantity=520.0,
+                    unit="m3",
+                    source_element="IfcElementQuantity",
+                    confidence_score=0.85,
+                ),
+            ]
+        )
+        db_session.commit()
+
+    monkeypatch.setattr("app.api.bim._process_model_task", _fake_task)
+
+    upload_resp = client.post(
+        f"/projects/{project_id}/bim/upload",
+        files={"file": ("tower.ifc", b"FAKE-IFC-CONTENT", "application/octet-stream")},
+        headers=creator_header,
+    )
+    assert upload_resp.status_code == 200
+
+    upload_payload = upload_resp.json()
+    assert upload_payload["model"]["project_id"] == project_id
+    assert upload_payload["model"]["model_name"] == "tower.ifc"
+    assert upload_payload["model"]["processing_status"] in {"UPLOADED", "PROCESSING", "PROCESSED"}
+
+    materials_resp = client.get(f"/projects/{project_id}/bim/materials", headers=creator_header)
+    assert materials_resp.status_code == 200
+    materials = materials_resp.json()
+
+    names = {item["material_name"] for item in materials}
+    assert "steel" in names
+    assert "concrete" in names
+
+    by_name = {item["material_name"]: item for item in materials}
+    assert by_name["steel"]["unit"] == "tons"
+    assert round(float(by_name["steel"]["quantity"]), 3) == 110.0
+
+
+def test_new_bim_comparison_endpoint_flags_high_risk(client, db_session, monkeypatch):
+    org, creator, _, _, _ = _seed_users(db_session)
+    db_session.commit()
+
+    creator_header = _auth_header(client, creator.email, "creator-pass")
+    project_id = _create_project(client, creator_header, name="New BIM Comparison")
+
+    entry_id = _create_entry(
+        client,
+        creator_header,
+        project_id=project_id,
+        material_name="concrete",
+    )
+    entry = db_session.get(MaterialEntry, UUID(entry_id))
+    assert entry is not None
+    entry.quantity = 120.0
+    db_session.commit()
+
+    def _fake_task(model_id: str, _file_path: str) -> None:
+        model = db_session.get(BIMModel, UUID(model_id))
+        assert model is not None
+        model.processing_status = BIMProcessingStatus.PROCESSED
+        db_session.add(
+            BIMMaterial(
+                bim_model_id=model.id,
+                material_name="concrete",
+                quantity=400.0,
+                unit="m3",
+                source_element="IfcElementQuantity",
+                confidence_score=0.9,
+            )
+        )
+        db_session.commit()
+
+    monkeypatch.setattr("app.api.bim._process_model_task", _fake_task)
+
+    upload_resp = client.post(
+        f"/projects/{project_id}/bim/upload",
+        files={"file": ("compare.ifc", b"FAKE-IFC-CONTENT", "application/octet-stream")},
+        headers=creator_header,
+    )
+    assert upload_resp.status_code == 200
+
+    comparison_resp = client.get(f"/projects/{project_id}/bim/comparison", headers=creator_header)
+    assert comparison_resp.status_code == 200
+    report = comparison_resp.json()
+
+    assert report["project_id"] == project_id
+    assert len(report["comparisons"]) >= 1
+    assert len(report["anomalies"]) == 1
+
+    anomaly = report["anomalies"][0]
+    assert anomaly["material"] == "concrete"
+    assert anomaly["expected"] == 400.0
+    assert anomaly["reported"] == 120.0
+    assert anomaly["difference"] == 280.0
+    assert anomaly["risk_level"] == "HIGH_RISK"
+    assert anomaly["difference_ratio"] > 0.25
+
+
+def test_new_bim_endpoints_enforce_organization_isolation(client, db_session):
+    org_a, creator_a, _, _, _ = _seed_users(db_session)
+    org_b = Organization(name=f"Org-{uuid4()}")
+    db_session.add(org_b)
+    db_session.flush()
+    creator_b = _create_user(
+        db_session,
+        org=org_b,
+        role=UserRole.CREATOR,
+        email=f"creator-b-{uuid4().hex[:8]}@example.com",
+        password="creator-pass",
+    )
+    db_session.commit()
+
+    header_a = _auth_header(client, creator_a.email, "creator-pass")
+    header_b = _auth_header(client, creator_b.email, "creator-pass")
+
+    project_id = _create_project(client, header_a, name="Isolation BIM")
+
+    assert (
+        client.post(
+            f"/projects/{project_id}/bim/upload",
+            files={"file": ("isolation.ifc", b"FAKE-IFC-CONTENT", "application/octet-stream")},
+            headers=header_b,
+        ).status_code
+        == 404
+    )
+    assert client.get(f"/projects/{project_id}/bim/materials", headers=header_b).status_code == 404
+    assert client.get(f"/projects/{project_id}/bim/comparison", headers=header_b).status_code == 404
+
+
+def test_bim_service_parse_ifc_materials_extracts_aggregates(tmp_path, monkeypatch):
+    class _FakeQuantity:
+        def __init__(self, name: str, volume: float | None = None, weight: float | None = None):
+            self.Name = name
+            self.VolumeValue = volume
+            self.WeightValue = weight
+            self.AreaValue = None
+            self.LengthValue = None
+            self.CountValue = None
+
+    class _FakeQSet:
+        def __init__(self, name: str, quantities: list[object]):
+            self.Name = name
+            self.Quantities = quantities
+
+    class _FakeMaterial:
+        def __init__(self, name: str):
+            self.Name = name
+
+    class _FakeModel:
+        def by_type(self, name: str):
+            if name == "IfcMaterial":
+                return [_FakeMaterial("Concrete"), _FakeMaterial("Steel")]
+            if name == "IfcElementQuantity":
+                return [
+                    _FakeQSet("Concrete", [_FakeQuantity("Concrete", volume=9000.0)]),
+                    _FakeQSet("Steel", [_FakeQuantity("Steel", weight=1200000.0)]),
+                ]
+            return []
+
+    fake_ifcopenshell = types.SimpleNamespace(open=lambda _path: _FakeModel())
+    monkeypatch.setitem(sys.modules, "ifcopenshell", fake_ifcopenshell)
+
+    file_path = tmp_path / "sample.ifc"
+    file_path.write_text("ISO-10303-21;")
+
+    materials = parse_ifc_materials(str(file_path))
+
+    by_name = {item["name"]: item for item in materials}
+    assert by_name["Concrete"]["quantity"] == 9000.0
+    assert by_name["Concrete"]["unit"] == "m3"
+    assert by_name["Steel"]["quantity"] == 1200.0
+    assert by_name["Steel"]["unit"] == "tons"
+
+
+def test_bim_upload_route_returns_materials(client, db_session, monkeypatch):
+    _, creator, _, _, _ = _seed_users(db_session)
+    db_session.commit()
+    header = _auth_header(client, creator.email, "creator-pass")
+
+    monkeypatch.setattr(
+        "app.api.bim.parse_ifc_materials",
+        lambda _path: [
+            {"name": "Concrete", "quantity": 9000.0, "unit": "m3"},
+            {"name": "Steel", "quantity": 1200.0, "unit": "tons"},
+        ],
+    )
+
+    response = client.post(
+        "/bim/upload",
+        files={"file": ("model.ifc", b"IFC-DATA", "application/octet-stream")},
+        headers=header,
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload == {
+        "materials": [
+            {"name": "Concrete", "quantity": 9000.0, "unit": "m3"},
+            {"name": "Steel", "quantity": 1200.0, "unit": "tons"},
+        ]
+    }
+
+
+def test_bim_upload_route_validates_ifc_extension(client, db_session):
+    _, creator, _, _, _ = _seed_users(db_session)
+    db_session.commit()
+    header = _auth_header(client, creator.email, "creator-pass")
+
+    response = client.post(
+        "/bim/upload",
+        files={"file": ("model.txt", b"not-ifc", "text/plain")},
+        headers=header,
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Only IFC files are supported"
+
+
+def test_emissions_service_calculates_total_and_breakdown(db_session):
+    db_session.add_all(
+        [
+            EmissionFactor(
+                material_name="Concrete",
+                factor_value=0.133333333333,
+                unit="m3",
+                source="IPCC",
+                standard_name="ISO 14064",
+                region="IN",
+                source_document_url="https://example.com/concrete",
+                methodology_reference="Method-A",
+                version=101,
+                valid_from=date(2026, 1, 1),
+                is_active=True,
+            ),
+            EmissionFactor(
+                material_name="Steel",
+                factor_value=0.208333333333,
+                unit="tons",
+                source="IPCC",
+                standard_name="ISO 14064",
+                region="IN",
+                source_document_url="https://example.com/steel",
+                methodology_reference="Method-B",
+                version=101,
+                valid_from=date(2026, 1, 1),
+                is_active=True,
+            ),
+        ]
+    )
+    db_session.commit()
+
+    result = EmissionsService(db_session).calculate_material_emissions(
+        [
+            {"name": "Concrete", "quantity": 9000, "unit": "m3"},
+            {"name": "Steel", "quantity": 1200, "unit": "tons"},
+        ]
+    )
+
+    assert float(result["total_emissions"]) == pytest.approx(1449.9966, abs=1e-4)
+    assert result["breakdown"] == [
+        {"material": "Concrete", "emissions": 1199.997},
+        {"material": "Steel", "emissions": 249.9996},
+    ]
+
+
+def test_emissions_calculate_endpoint_handles_missing_factors(client, db_session):
+    _, creator, _, _, _ = _seed_users(db_session)
+    db_session.add(
+        EmissionFactor(
+            material_name="Concrete",
+            factor_value=0.1,
+            unit="m3",
+            source="IPCC",
+            standard_name="ISO 14064",
+            region="IN",
+            source_document_url="https://example.com/concrete",
+            methodology_reference="Method-A",
+            version=202,
+            valid_from=date(2026, 1, 1),
+            is_active=True,
+        )
+    )
+    db_session.commit()
+
+    header = _auth_header(client, creator.email, "creator-pass")
+    response = client.post(
+        "/emissions/calculate",
+        json={
+            "materials": [
+                {"name": "Concrete", "quantity": 100, "unit": "m3"},
+                {"name": "UnknownMaterial", "quantity": 50, "unit": "m3"},
+            ]
+        },
+        headers=header,
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["total_emissions"] == 10.0
+    assert payload["breakdown"] == [
+        {"material": "Concrete", "emissions": 10.0},
+        {"material": "UnknownMaterial", "emissions": 0.0},
+    ]
+
+
+def test_emissions_calculate_endpoint_validates_payload(client, db_session):
+    _, creator, _, _, _ = _seed_users(db_session)
+    db_session.commit()
+    header = _auth_header(client, creator.email, "creator-pass")
+
+    response = client.post(
+        "/emissions/calculate",
+        json={"materials": [{"name": "Concrete", "quantity": -1, "unit": "m3"}]},
+        headers=header,
+    )
+
+    assert response.status_code == 422
+
+
+def test_train_anomaly_model_persists_and_detects(monkeypatch, tmp_path):
+    model_path = tmp_path / "anomaly.pkl"
+    monkeypatch.setattr(anomaly_service, "MODEL_DIR", tmp_path)
+    monkeypatch.setattr(anomaly_service, "MODEL_PATH", model_path)
+
+    dataset = [
+        {"building_id": "B1", "material": "Concrete", "quantity": 8500},
+        {"building_id": "B1", "material": "Steel", "quantity": 1100},
+        {"building_id": "B2", "material": "Concrete", "quantity": 8700},
+        {"building_id": "B2", "material": "Steel", "quantity": 1150},
+        {"building_id": "B3", "material": "Concrete", "quantity": 8600},
+        {"building_id": "B3", "material": "Steel", "quantity": 1120},
+        {"building_id": "B4", "material": "Concrete", "quantity": 8550},
+        {"building_id": "B4", "material": "Steel", "quantity": 1090},
+        {"building_id": "B5", "material": "Concrete", "quantity": 8650},
+        {"building_id": "B5", "material": "Steel", "quantity": 1130},
+    ]
+
+    summary = train_anomaly_model(dataset)
+    assert summary["trained_rows"] == 10
+    assert model_path.exists()
+
+    result_1 = detect_anomalies(
+        [
+            {"name": "Concrete", "quantity": 9000},
+            {"name": "Steel", "quantity": 1200},
+        ]
+    )
+    result_2 = detect_anomalies(
+        [
+            {"name": "Concrete", "quantity": 9000},
+            {"name": "Steel", "quantity": 1200},
+        ]
+    )
+
+    assert result_1 == result_2
+    assert 0.0 <= float(result_1["risk_score"]) <= 1.0
+    assert isinstance(result_1["flags"], list)
+
+
+def test_analysis_anomaly_endpoint_returns_structured_output(client, db_session, monkeypatch, tmp_path):
+    model_path = tmp_path / "anomaly.pkl"
+    monkeypatch.setattr(anomaly_service, "MODEL_DIR", tmp_path)
+    monkeypatch.setattr(anomaly_service, "MODEL_PATH", model_path)
+
+    dataset = [
+        {"building_id": "B1", "material": "Concrete", "quantity": 8000},
+        {"building_id": "B1", "material": "Steel", "quantity": 1000},
+        {"building_id": "B2", "material": "Concrete", "quantity": 8100},
+        {"building_id": "B2", "material": "Steel", "quantity": 1020},
+        {"building_id": "B3", "material": "Concrete", "quantity": 7900},
+        {"building_id": "B3", "material": "Steel", "quantity": 980},
+        {"building_id": "B4", "material": "Concrete", "quantity": 8050},
+        {"building_id": "B4", "material": "Steel", "quantity": 1010},
+        {"building_id": "B5", "material": "Concrete", "quantity": 7950},
+        {"building_id": "B5", "material": "Steel", "quantity": 990},
+    ]
+    train_anomaly_model(dataset)
+
+    _, creator, _, _, _ = _seed_users(db_session)
+    db_session.commit()
+    header = _auth_header(client, creator.email, "creator-pass")
+
+    response = client.post(
+        "/analysis/anomaly",
+        json={
+            "materials": [
+                {"name": "Concrete", "quantity": 9000},
+                {"name": "Steel", "quantity": 1200},
+            ]
+        },
+        headers=header,
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert "risk_score" in payload
+    assert "flags" in payload
+    assert 0.0 <= float(payload["risk_score"]) <= 1.0
+
+
+def test_analysis_anomaly_endpoint_validates_payload(client, db_session):
+    _, creator, _, _, _ = _seed_users(db_session)
+    db_session.commit()
+    header = _auth_header(client, creator.email, "creator-pass")
+
+    response = client.post(
+        "/analysis/anomaly",
+        json={"materials": [{"name": "Concrete", "quantity": -10}]},
+        headers=header,
+    )
+    assert response.status_code == 422
+
+
+def test_analysis_anomaly_train_endpoint_admin_only(client, db_session):
+    _, creator, _, _, _ = _seed_users(db_session)
+    db_session.commit()
+    header = _auth_header(client, creator.email, "creator-pass")
+
+    response = client.post(
+        "/analysis/anomaly/train",
+        json={
+            "dataset": [
+                {"building_id": "B1", "material": "Concrete", "quantity": 8000},
+                {"building_id": "B1", "material": "Steel", "quantity": 1000},
+                {"building_id": "B2", "material": "Concrete", "quantity": 8100},
+                {"building_id": "B2", "material": "Steel", "quantity": 1020},
+                {"building_id": "B3", "material": "Concrete", "quantity": 7900},
+                {"building_id": "B3", "material": "Steel", "quantity": 980},
+                {"building_id": "B4", "material": "Concrete", "quantity": 8050},
+                {"building_id": "B4", "material": "Steel", "quantity": 1010},
+                {"building_id": "B5", "material": "Concrete", "quantity": 7950},
+                {"building_id": "B5", "material": "Steel", "quantity": 990},
+            ]
+        },
+        headers=header,
+    )
+    assert response.status_code == 403
+
+
+def test_analysis_anomaly_train_endpoint_succeeds_for_admin(client, db_session, monkeypatch, tmp_path):
+    model_path = tmp_path / "anomaly_train.pkl"
+    monkeypatch.setattr(anomaly_service, "MODEL_DIR", tmp_path)
+    monkeypatch.setattr(anomaly_service, "MODEL_PATH", model_path)
+
+    _, _, _, _, admin = _seed_users(db_session)
+    db_session.commit()
+    header = _auth_header(client, admin.email, "admin-pass")
+
+    response = client.post(
+        "/analysis/anomaly/train",
+        json={
+            "dataset": [
+                {"building_id": "B1", "material": "Concrete", "quantity": 8000},
+                {"building_id": "B1", "material": "Steel", "quantity": 1000},
+                {"building_id": "B2", "material": "Concrete", "quantity": 8100},
+                {"building_id": "B2", "material": "Steel", "quantity": 1020},
+                {"building_id": "B3", "material": "Concrete", "quantity": 7900},
+                {"building_id": "B3", "material": "Steel", "quantity": 980},
+                {"building_id": "B4", "material": "Concrete", "quantity": 8050},
+                {"building_id": "B4", "material": "Steel", "quantity": 1010},
+                {"building_id": "B5", "material": "Concrete", "quantity": 7950},
+                {"building_id": "B5", "material": "Steel", "quantity": 990},
+            ]
+        },
+        headers=header,
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["trained_rows"] == 10
+    assert model_path.exists()

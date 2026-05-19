@@ -5,6 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.material_entry import MaterialEntry, MaterialStatus
+from app.models.project import Project
+from app.models.user import User
 
 
 class MaterialService:
@@ -16,6 +18,7 @@ class MaterialService:
         *,
         project_id: UUID,
         user_id: UUID,
+        organization_id: UUID,
         material_name: str,
         quantity: float,
         supplier_name: str | None,
@@ -26,6 +29,16 @@ class MaterialService:
         factor_source_snapshot: str,
     ) -> MaterialEntry:
         with self._session.begin():
+            user = self._session.get(User, user_id)
+            if user is None:
+                raise ValueError("User not found")
+
+            project = self._session.get(Project, project_id)
+            if project is None:
+                raise ValueError("Project not found")
+            if project.organization_id != organization_id:
+                raise ValueError("Forbidden: project is outside your organization")
+
             entry = MaterialEntry(
                 project_id=project_id,
                 material_name=material_name,

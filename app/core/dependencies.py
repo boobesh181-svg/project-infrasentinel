@@ -40,6 +40,12 @@ def get_current_user(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication credentials",
             )
+        token_org = payload.get("org")
+        if token_org is not None and str(user.organization_id) != str(token_org):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials",
+            )
         return user
 
 

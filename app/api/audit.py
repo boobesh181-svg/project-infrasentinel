@@ -9,9 +9,18 @@ from app.models.material_entry import MaterialEntry
 from app.models.project import Project
 from app.models.user import User, UserRole
 from app.models.audit_log import AuditLog
-from app.schemas.audit import AuditLogListOut
+from app.schemas.audit import AuditLogListOut, AuditRootHashOut
+from app.services.audit_service import AuditService
 
 router = APIRouter(prefix="/audit", tags=["audit"])
+
+
+@router.get("/root-hash", response_model=AuditRootHashOut)
+def get_audit_root_hash(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_roles(UserRole.ADMIN)),
+) -> AuditRootHashOut:
+    return AuditRootHashOut(root_hash=AuditService(db).latest_hash())
 
 
 @router.get("/{entity_type}/{entity_id}", response_model=AuditLogListOut)

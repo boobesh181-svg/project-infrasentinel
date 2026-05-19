@@ -10,6 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
 if TYPE_CHECKING:
+    from app.models.bim_material import BIMMaterial
     from app.models.project import Project
 
 
@@ -17,6 +18,13 @@ class BIMFileFormat(str, Enum):
     IFC = "IFC"
     RVT = "RVT"
     GLTF = "GLTF"
+
+
+class BIMProcessingStatus(str, Enum):
+    UPLOADED = "UPLOADED"
+    PROCESSING = "PROCESSING"
+    PROCESSED = "PROCESSED"
+    FAILED = "FAILED"
 
 
 class BIMModel(Base):
@@ -30,9 +38,16 @@ class BIMModel(Base):
         nullable=False,
     )
     file_path: Mapped[str] = mapped_column(String(500), nullable=False)
+    model_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    file_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     file_format: Mapped[BIMFileFormat] = mapped_column(
         SqlEnum(BIMFileFormat, name="bim_file_format_enum"),
         nullable=False,
+    )
+    processing_status: Mapped[BIMProcessingStatus] = mapped_column(
+        SqlEnum(BIMProcessingStatus, name="bim_processing_status_enum"),
+        nullable=False,
+        default=BIMProcessingStatus.UPLOADED,
     )
     uploaded_by: Mapped[UUID] = mapped_column(
         PgUUID(as_uuid=True),
@@ -44,5 +59,14 @@ class BIMModel(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
 
     project: Mapped["Project"] = relationship(back_populates="bim_models")
+    materials: Mapped[list["BIMMaterial"]] = relationship(
+        back_populates="bim_model",
+        passive_deletes=True,
+    )

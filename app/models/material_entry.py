@@ -78,6 +78,11 @@ class MaterialEntry(Base):
     temporal_anomaly: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     bim_discrepancy_score: Mapped[float | None] = mapped_column(Numeric(10, 4))
     bim_validation_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    ai_risk_score: Mapped[float | None] = mapped_column(Numeric(10, 4), nullable=True)
+    ai_risk_level: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    ai_anomaly_reason: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    signature: Mapped[str | None] = mapped_column(String, nullable=True)
+    signature_algorithm: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

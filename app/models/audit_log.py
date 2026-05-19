@@ -10,7 +10,10 @@ from app.db.base import Base
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
-    __table_args__ = (Index("ix_audit_logs_performed_by_id", "performed_by_id"),)
+    __table_args__ = (
+        Index("ix_audit_logs_performed_by_id", "performed_by_id"),
+        Index("ix_audit_logs_current_hash", "current_hash"),
+    )
 
     id: Mapped[UUID] = mapped_column(
         PgUUID(as_uuid=True), primary_key=True, default=uuid4
@@ -28,6 +31,8 @@ class AuditLog(Base):
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
+    previous_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    current_hash: Mapped[str] = mapped_column(String(64), nullable=False)
 
     performed_by = relationship("User", back_populates="audit_logs")
 

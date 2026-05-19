@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import logging
 import os
 from uuid import UUID
 
@@ -10,6 +11,9 @@ from app.models.notification import Notification, ResponseType
 from app.models.project import Project
 from app.models.user import User, UserRole
 from app.services.audit_service import AuditService
+
+
+logger = logging.getLogger("infrasentinel")
 
 
 class NotificationService:
@@ -77,7 +81,17 @@ class NotificationService:
         deadline_hours = self._notification_deadline_hours()
         response_deadline = notified_at + timedelta(hours=deadline_hours)
 
-        recipients = {owner_id, verifier.id}
+        recipients = {owner_id}
+        if verifier is not None:
+            recipients.add(verifier.id)
+        else:
+            logger.warning(
+                "No active verifier found for organization; submission notifications sent without verifier recipient",
+                extra={
+                    "organization_id": str(project.organization_id),
+                    "entry_id": str(entry.id),
+                },
+            )
         if supplier is not None:
             recipients.add(supplier.id)
         notifications: list[Notification] = []
@@ -173,7 +187,7 @@ class NotificationService:
             raise ValueError("Project not found")
         return project
 
-    def _get_project_verifier(self, organization_id: UUID) -> User:
+    def _get_project_verifier(self, organization_id: UUID) -> User | None:
         stmt = (
             select(User)
             .where(
@@ -185,8 +199,6 @@ class NotificationService:
             .limit(1)
         )
         verifier = self._session.execute(stmt).scalar_one_or_none()
-        if verifier is None:
-            raise ValueError("No active verifier found for organization")
         return verifier
 
     def _notification_deadline_hours(self) -> int:

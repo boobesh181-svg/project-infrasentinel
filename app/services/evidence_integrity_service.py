@@ -53,3 +53,13 @@ class EvidenceIntegrityService:
             .order_by(MaterialEntry.created_at.desc())
         )
         return list(self._session.execute(stmt).scalars().all())
+
+    def check_duplicate_hash(self, *, file_hash: str) -> list[MaterialEntry]:
+        stmt = (
+            select(MaterialEntry)
+            .join(EvidenceFile, EvidenceFile.material_entry_id == MaterialEntry.id)
+            .where(EvidenceFile.file_hash == file_hash)
+            .order_by(MaterialEntry.created_at.asc())
+            .distinct()
+        )
+        return list(self._session.execute(stmt).scalars().all())

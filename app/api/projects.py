@@ -1,4 +1,5 @@
 import logging
+import hashlib
 from pathlib import Path
 from uuid import UUID
 
@@ -10,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_current_user, get_db, require_roles
 from app.models.project import Project
 from app.models.bim_material_estimate import BIMMaterialEstimate
-from app.models.bim_model import BIMFileFormat, BIMModel
+from app.models.bim_model import BIMFileFormat, BIMModel, BIMProcessingStatus
 from app.models.material_entry import MaterialEntry
 from app.models.user import User, UserRole
 from app.db.session import SessionLocal
@@ -96,7 +97,6 @@ def get_project(
 ) -> ProjectOut:
     project = db.get(Project, project_id)
     if project is None:
-        exists = db.get(Project, project_id) is not None
         logger.warning(
             "404 resource not found",
             extra={
@@ -105,7 +105,7 @@ def get_project(
                 "user_id": str(user.id),
                 "user_email": user.email,
                 "user_org": str(user.organization_id),
-                "db_exists": exists,
+                "db_exists": False,
                 "org_mismatch": False,
             },
         )
@@ -137,7 +137,6 @@ def list_project_entries(
 ) -> ProjectMaterialEntryListOut:
     project = db.get(Project, project_id)
     if project is None:
-        exists = db.get(Project, project_id) is not None
         logger.warning(
             "404 resource not found",
             extra={
@@ -146,7 +145,7 @@ def list_project_entries(
                 "user_id": str(user.id),
                 "user_email": user.email,
                 "user_org": str(user.organization_id),
-                "db_exists": exists,
+                "db_exists": False,
                 "org_mismatch": False,
             },
         )
@@ -214,10 +213,22 @@ def upload_bim_model(
                 break
             out_file.write(chunk)
 
+    hasher = hashlib.sha256()
+    with file_path.open("rb") as in_file:
+        while True:
+            chunk = in_file.read(1024 * 1024)
+            if not chunk:
+                break
+            hasher.update(chunk)
+    file_hash = hasher.hexdigest()
+
     model = BIMModel(
         project_id=project.id,
         file_path=str(file_path),
+        model_name=Path(file.filename or "model.ifc").name,
+        file_hash=file_hash,
         file_format=file_format,
+        processing_status=BIMProcessingStatus.UPLOADED,
         uploaded_by=user.id,
     )
     db.add(model)

@@ -19,6 +19,7 @@ from app.models.material_entry import MaterialEntry, MaterialStatus
 from app.models.mrv_report import MRVReport, MRVReportStatus
 from app.models.project import Project
 from app.models.user import User
+from app.services.report.verification_report_service import VerificationReportService
 from app.services.audit_service import AuditService
 
 logger = logging.getLogger("infrasentinel")
@@ -325,3 +326,4 @@ class ReportService:
             )
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
         return report
+

@@ -17,6 +17,16 @@ export type SupplierConfirmationPayload = {
   comment?: string;
 };
 
+export type SupplierConfirmationStatus = {
+  id: string;
+  entry_id: string;
+  supplier_name: string;
+  supplier_email: string;
+  status: "PENDING" | "CONFIRMED" | "DISPUTED";
+  confirmed_at?: string | null;
+  created_at: string;
+};
+
 export type HighRiskEntry = {
   entry_id: string;
   project_id: string;

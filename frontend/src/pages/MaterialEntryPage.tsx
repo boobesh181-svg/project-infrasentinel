@@ -8,12 +8,12 @@ import {
   submitEntry,
   verifyEntry
 } from "../api/materialEntries";
-import { fetchEntryRisk } from "../api/antiCorruption";
+import { fetchEntryRisk, fetchSupplierConfirmationStatus } from "../api/antiCorruption";
 import { fetchEmissionFactors } from "../api/emissionFactors";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
-import { EntryRisk } from "../types/antiCorruption";
+import { EntryRisk, SupplierConfirmationStatus } from "../types/antiCorruption";
 import { EmissionFactor } from "../types/emissionFactor";
 import { MaterialEntry, MaterialEntryCreate } from "../types/materialEntry";
 
@@ -22,6 +22,7 @@ const MaterialEntryPage = ({ mode }: { mode: "create" | "view" }) => {
   const navigate = useNavigate();
   const [entry, setEntry] = useState<MaterialEntry | null>(null);
   const [entryRisk, setEntryRisk] = useState<EntryRisk | null>(null);
+  const [supplierConfirmation, setSupplierConfirmation] = useState<SupplierConfirmationStatus | null>(null);
   const [factors, setFactors] = useState<EmissionFactor[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -55,12 +56,14 @@ const MaterialEntryPage = ({ mode }: { mode: "create" | "view" }) => {
     if (mode !== "view" || !entryId) return;
     const loadEntry = async () => {
       try {
-        const [entryResponse, riskResponse] = await Promise.all([
+        const [entryResponse, riskResponse, supplierConfirmationResponse] = await Promise.all([
           fetchMaterialEntry(entryId),
-          fetchEntryRisk(entryId)
+          fetchEntryRisk(entryId),
+          fetchSupplierConfirmationStatus(entryId)
         ]);
         setEntry(entryResponse);
         setEntryRisk(riskResponse);
+        setSupplierConfirmation(supplierConfirmationResponse);
       } catch (err: any) {
         setError(err?.message ?? "Unable to load entry.");
       }
@@ -258,6 +261,9 @@ const MaterialEntryPage = ({ mode }: { mode: "create" | "view" }) => {
             </p>
             <p className="text-sm text-slate-600">
               BIM Discrepancy Score: <span className="font-medium text-slate-900">{entry.bim_discrepancy_score ?? 0}</span>
+            </p>
+            <p className="text-sm text-slate-600">
+              Supplier Confirmation: <span className="font-medium text-slate-900">{supplierConfirmation?.status ?? "PENDING"}</span>
             </p>
             <div className="md:col-span-2">
               <Badge label={entry.status} />

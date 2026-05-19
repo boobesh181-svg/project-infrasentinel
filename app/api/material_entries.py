@@ -1,13 +1,14 @@
 import logging
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user, get_db, require_roles
+from app.core.rate_limit import limiter
 from app.models.user import User, UserRole
-from app.schemas.material_entry import MaterialEntryCreate, MaterialEntryOut
+from app.schemas.material_entry import MaterialEntryCreate, MaterialEntryOut, WorkflowSignatureIn
 from app.models.material_entry import MaterialEntry
 from app.services.audit_service import AuditService
 from app.services.material_service import MaterialService
@@ -18,7 +19,7 @@ logger = logging.getLogger("infrasentinel")
 router = APIRouter(prefix="/material-entries", tags=["material-entries"])
 
 
-def _handle_transition_error(exc: ValueError, *, user: User, entry_id: UUID) -> None:
+def _handle_transition_error(exc: ValueError, *, user: User, entry_id: UUID | None) -> None:
     detail = str(exc)
     lowered = detail.lower()
     if "not found" in lowered:
@@ -26,7 +27,7 @@ def _handle_transition_error(exc: ValueError, *, user: User, entry_id: UUID) -> 
             "404 resource not found",
             extra={
                 "resource": "material_entry",
-                "requested_id": str(entry_id),
+                "requested_id": str(entry_id) if entry_id is not None else "unknown",
                 "user_id": str(user.id),
                 "user_email": user.email,
                 "user_org": str(user.organization_id),
@@ -35,6 +36,8 @@ def _handle_transition_error(exc: ValueError, *, user: User, entry_id: UUID) -> 
             },
         )
         status_code = status.HTTP_404_NOT_FOUND
+    elif "forbidden" in lowered:
+        status_code = status.HTTP_403_FORBIDDEN
     elif "verifier" in lowered or "notification_response_hours" in lowered:
         status_code = status.HTTP_400_BAD_REQUEST
     else:
@@ -43,16 +46,20 @@ def _handle_transition_error(exc: ValueError, *, user: User, entry_id: UUID) -> 
 
 
 @router.post("", response_model=MaterialEntryOut)
+@limiter.limit("20/minute")
 def create_material_entry(
+    request: Request,
     payload: MaterialEntryCreate,
     db: Session = Depends(get_db),
     user: User = Depends(require_roles(UserRole.CREATOR)),
 ) -> MaterialEntryOut:
+    del request
     service = MaterialService(db)
     try:
         created = service.create_entry(
             project_id=payload.project_id,
             user_id=user.id,
+            organization_id=user.organization_id,
             material_name=payload.material_name,
             quantity=payload.quantity,
             supplier_name=payload.supplier_name,
@@ -73,7 +80,7 @@ def create_material_entry(
             )
         return created
     except ValueError as exc:
-        _handle_transition_error(exc, user=user, entry_id=payload.project_id)
+        _handle_transition_error(exc, user=user, entry_id=None)
 
 
 @router.get("/{entry_id}", response_model=MaterialEntryOut)
@@ -84,7 +91,6 @@ def get_material_entry(
 ) -> MaterialEntryOut:
     entry = db.get(MaterialEntry, entry_id)
     if entry is None:
-        exists = db.get(MaterialEntry, entry_id) is not None
         logger.warning(
             "404 resource not found",
             extra={
@@ -93,7 +99,7 @@ def get_material_entry(
                 "user_id": str(user.id),
                 "user_email": user.email,
                 "user_org": str(user.organization_id),
-                "db_exists": exists,
+                "db_exists": False,
                 "org_mismatch": False,
             },
         )
@@ -120,12 +126,17 @@ def get_material_entry(
 @router.post("/{entry_id}/submit", response_model=MaterialEntryOut)
 def submit_entry(
     entry_id: UUID,
+    payload: WorkflowSignatureIn | None = None,
     db: Session = Depends(get_db),
     user: User = Depends(require_roles(UserRole.CREATOR)),
 ) -> MaterialEntryOut:
     service = WorkflowService(db)
     try:
-        return service.submit(entry_id=entry_id, actor_user_id=user.id)
+        return service.submit(
+            entry_id=entry_id,
+            actor_user_id=user.id,
+            signature_payload=payload,
+        )
     except ValueError as exc:
         _handle_transition_error(exc, user=user, entry_id=entry_id)
 
@@ -133,12 +144,17 @@ def submit_entry(
 @router.post("/{entry_id}/verify", response_model=MaterialEntryOut)
 def verify_entry(
     entry_id: UUID,
+    payload: WorkflowSignatureIn | None = None,
     db: Session = Depends(get_db),
     user: User = Depends(require_roles(UserRole.VERIFIER, UserRole.ADMIN, UserRole.AUDITOR)),
 ) -> MaterialEntryOut:
     service = WorkflowService(db)
     try:
-        return service.verify(entry_id=entry_id, actor_user_id=user.id)
+        return service.verify(
+            entry_id=entry_id,
+            actor_user_id=user.id,
+            signature_payload=payload,
+        )
     except ValueError as exc:
         _handle_transition_error(exc, user=user, entry_id=entry_id)
 
@@ -146,12 +162,17 @@ def verify_entry(
 @router.post("/{entry_id}/approve", response_model=MaterialEntryOut)
 def approve_entry(
     entry_id: UUID,
+    payload: WorkflowSignatureIn | None = None,
     db: Session = Depends(get_db),
     user: User = Depends(require_roles(UserRole.APPROVER)),
 ) -> MaterialEntryOut:
     service = WorkflowService(db)
     try:
-        return service.approve(entry_id=entry_id, actor_user_id=user.id)
+        return service.approve(
+            entry_id=entry_id,
+            actor_user_id=user.id,
+            signature_payload=payload,
+        )
     except ValueError as exc:
         _handle_transition_error(exc, user=user, entry_id=entry_id)
 
@@ -159,11 +180,16 @@ def approve_entry(
 @router.post("/{entry_id}/lock", response_model=MaterialEntryOut)
 def lock_entry(
     entry_id: UUID,
+    payload: WorkflowSignatureIn | None = None,
     db: Session = Depends(get_db),
     user: User = Depends(require_roles(UserRole.ADMIN)),
 ) -> MaterialEntryOut:
     service = WorkflowService(db)
     try:
-        return service.lock(entry_id=entry_id, actor_user_id=user.id)
+        return service.lock(
+            entry_id=entry_id,
+            actor_user_id=user.id,
+            signature_payload=payload,
+        )
     except ValueError as exc:
         _handle_transition_error(exc, user=user, entry_id=entry_id)

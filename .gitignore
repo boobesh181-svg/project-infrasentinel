@@ -21,3 +21,32 @@ npm-debug.log*
 .vscode/*.log
 .DS_Store
 Thumbs.db
+
+# runtime storage
+storage/
+
+# ML model artifacts
+models/*.pkl
+models/*.joblib
+
+# Python cache
+__pycache__/
+*.pyc
+
+# test artifacts
+.pytest_cache/
+.coverage
+coverage/
+
+# logs
+*.log
+
+# temp files
+*.tmp
+*.bin
+*.sqlite
+*.db
+
+# build artifacts
+dist/
+build/

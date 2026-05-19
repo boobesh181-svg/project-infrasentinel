@@ -1,15 +1,16 @@
-from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from app.models.audit_log import AuditLog
+from app.services.audit_service import AuditService
 
 
 class VerificationAuditService:
     def __init__(self, session: Session) -> None:
         self._session = session
+        self._audit = AuditService(session)
 
     def log(
         self,
@@ -24,14 +25,12 @@ class VerificationAuditService:
     ) -> AuditLog:
         payload_before = {"organization_id": str(organization_id), **before_state}
         payload_after = {"organization_id": str(organization_id), **after_state}
-        record = AuditLog(
+        record = self._audit.log(
+            performed_by_id=user_id,
             entity_type=entity_type,
             entity_id=entity_id,
             action=action,
-            performed_by_id=user_id,
             previous_state=payload_before,
             new_state=payload_after,
-            timestamp=datetime.now(timezone.utc),
         )
-        self._session.add(record)
         return record

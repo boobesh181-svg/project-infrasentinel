@@ -4,6 +4,7 @@ import {
   EntryRisk,
   EvidenceAcknowledgement,
   HighRiskEntry,
+  SupplierConfirmationStatus,
   SupplierConfirmationPayload
 } from "../types/antiCorruption";
 
@@ -40,6 +41,11 @@ export const fetchHighRiskEntries = async () => {
 
 export const fetchEntryRisk = async (entryId: string) => {
   const response = await apiClient.get<EntryRisk>(`/entries/${entryId}/risk`);
+  return response.data;
+};
+
+export const fetchSupplierConfirmationStatus = async (entryId: string) => {
+  const response = await apiClient.get<SupplierConfirmationStatus | null>(`/supplier-confirm/${entryId}`);
   return response.data;
 };
 
