@@ -1,0 +1,22 @@
+[
+  {
+    "site_id": "11111111-1111-1111-1111-111111111111",
+    "camera_id": "site_cam_01",
+    "vehicle_plate": "ABC1234",
+    "supplier": "Acme Aggregates",
+    "expected_quantity": 12.5,
+    "gps_lat": -33.865143,
+    "gps_lng": 151.209900,
+    "occurred_at": "2026-05-23T08:15:00Z"
+  },
+  {
+    "site_id": "11111111-1111-1111-1111-111111111111",
+    "camera_id": "site_cam_01",
+    "vehicle_plate": "XYZ9876",
+    "supplier": "Blue Sands",
+    "expected_quantity": 8.0,
+    "gps_lat": -33.865200,
+    "gps_lng": 151.210000,
+    "occurred_at": "2026-05-23T08:22:00Z"
+  }
+]

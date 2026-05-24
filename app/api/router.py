@@ -10,6 +10,7 @@ from app.api.auth import router as auth_router
 from app.api.attestations import router as attestation_router
 from app.api.debug import router as debug_router
 from app.api.dashboard import router as dashboard_router
+from app.api.ops import router as ops_router
 from app.api.emission_factors import router as emission_factor_router
 from app.api.evidence import router as evidence_router
 from app.api.health import router as health_router
@@ -56,3 +57,4 @@ router.include_router(report_router)
 router.include_router(verification_report_router)
 router.include_router(debug_router)
 router.include_router(health_router, tags=["health"])
+router.include_router(ops_router)

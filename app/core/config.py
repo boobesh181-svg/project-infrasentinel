@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     object_storage_bucket: str = "infrasentinel"
     object_storage_base_url: str = "http://localhost:9000"
     object_storage_local_root: str = "storage"
-    cors_allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    cors_allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173"
     cors_allowed_origin_regex: str | None = r"https?://(localhost|127\.0\.0\.1)(:\d+)?$"
     sentry_dsn: str | None = None
     sentry_traces_sample_rate: float = 0.0

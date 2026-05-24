@@ -10,6 +10,7 @@ from app.models.evidence_acknowledgement import (
 )
 from app.models.emission_record import EmissionRecord
 from app.models.evidence_file import EvidenceFile
+from app.models.evidence_asset import EvidenceAsset
 from app.models.emission_factor import EmissionFactor
 from app.models.entry_risk_score import EntryRiskScore, RiskLevel
 from app.models.material_event import MaterialEvent
@@ -25,6 +26,8 @@ from app.models.supplier_confirmation import SupplierConfirmation, SupplierConfi
 from app.models.user_key import UserKey
 from app.models.user import User, UserRole
 from app.models.verification_record import VerificationRecord
+from app.models.delivery_event import DeliveryEvent
+from app.models.verification_result import VerificationResult
 
 __all__ = [
     "Attestation",
@@ -39,6 +42,7 @@ __all__ = [
     "AcknowledgementRole",
     "EmissionRecord",
     "EvidenceFile",
+    "EvidenceAsset",
     "EmissionFactor",
     "EntryRiskScore",
     "MaterialEvent",
@@ -60,4 +64,6 @@ __all__ = [
     "UserRole",
     "RiskLevel",
     "VerificationRecord",
+    "DeliveryEvent",
+    "VerificationResult",
 ]

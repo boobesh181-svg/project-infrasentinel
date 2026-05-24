@@ -19,6 +19,9 @@ import ProjectsPage from "./pages/ProjectsPage.tsx";
 import RiskCenterPage from "./pages/RiskCenterPage.tsx";
 import SupplierConfirmationPage from "./pages/SupplierConfirmationPage.tsx";
 import { useAuth } from "./hooks/useAuth";
+import OpsOverviewPage from "./pages/OpsOverviewPage";
+import SitePage from "./pages/SitePage";
+import VerificationPage from "./pages/VerificationPage";
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { token } = useAuth();
@@ -68,6 +71,9 @@ const App = () => {
         <Route path="bim-validation" element={<BimValidationPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="audit" element={<AuditPage />} />
+        <Route path="ops" element={<OpsOverviewPage />} />
+        <Route path="ops/site/:siteId" element={<SitePage />} />
+        <Route path="verify/:deliveryId" element={<VerificationPage />} />
         <Route path="admin" element={<DashboardPage />} />
       </Route>
 
