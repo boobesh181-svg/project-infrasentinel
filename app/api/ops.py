@@ -26,6 +26,19 @@ import json
 router = APIRouter(prefix="/ops", tags=["ops"])
 
 
+def publish_ops_event(payload: dict) -> None:
+    try:
+        settings = get_settings()
+        r = redis.from_url(settings.redis_url)
+        payload = {
+            **payload,
+            "created_at": payload.get("created_at") or datetime.now(timezone.utc).isoformat(),
+        }
+        r.publish("ops:events", json.dumps(payload))
+    except Exception:
+        pass
+
+
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
@@ -45,7 +58,7 @@ def ingest_event(payload: DeliveryEventIn, db: Session = Depends(get_db)):
         gps_lat=payload.gps_lat,
         gps_lng=payload.gps_lng,
         occurred_at=payload.occurred_at,
-        state="INGESTED",
+        state="DETECTED",
     )
     db.add(evt)
     db.commit()
@@ -65,6 +78,20 @@ def ingest_event(payload: DeliveryEventIn, db: Session = Depends(get_db)):
     except Exception:
         # non-fatal for demo — worker may be absent
         pass
+
+    publish_ops_event(
+        {
+            "type": "delivery_state",
+            "phase": "detected",
+            "state": "DETECTED",
+            "delivery_id": str(evt.id),
+            "site_id": str(evt.site_id),
+            "vehicle_plate": evt.vehicle_plate,
+            "supplier": evt.supplier,
+            "confidence": evt.confidence,
+            "reasoning": "Delivery arrival detected at the site boundary.",
+        }
+    )
 
     return evt
 
@@ -110,25 +137,45 @@ def operator_verify(delivery_id: UUID, action: VerifyActionIn, db: Session = Dep
     if not evt:
         raise HTTPException(status_code=404, detail="delivery not found")
 
+    normalized_action = action.action.upper()
+    state_map = {
+        "CONFIRM": "RESOLVED",
+        "REVIEW": "FLAGGED",
+        "ESCALATE": "ESCALATED",
+    }
+    confidence_map = {
+        "CONFIRM": 1.0,
+        "REVIEW": 0.45,
+        "ESCALATE": 0.1,
+    }
+    next_state = state_map.get(normalized_action, "FLAGGED")
+
     # Create a VerificationResult representing the operator action
     vr = VerificationResult(
         delivery_event_id=evt.id,
         analyzer=f"operator:{action.action}",
-        confidence=1.0 if action.action.upper() == "CONFIRM" else 0.0,
-        reasoning=action.notes,
+        confidence=confidence_map.get(normalized_action, 0.0),
+        reasoning=action.notes or f"Operator action recorded: {normalized_action}",
     )
-    evt.state = "VERIFIED" if action.action.upper() == "CONFIRM" else "REVIEW"
+    evt.state = next_state
     db.add(vr)
     db.add(evt)
     db.commit()
     db.refresh(evt)
     # publish operator action to ops stream
-    try:
-        settings = get_settings()
-        r = redis.from_url(settings.redis_url)
-        r.publish("ops:events", json.dumps({"type": "operator_action", "delivery_id": str(evt.id), "action": action.action, "notes": action.notes}))
-    except Exception:
-        pass
+    publish_ops_event(
+        {
+            "type": "operator_action",
+            "phase": next_state.lower(),
+            "state": next_state,
+            "delivery_id": str(evt.id),
+            "site_id": str(evt.site_id),
+            "action": normalized_action,
+            "notes": action.notes,
+            "confidence": vr.confidence,
+            "reasoning": vr.reasoning,
+        }
+    )
     return {"status": "ok", "delivery_id": str(evt.id), "state": evt.state}
 
 
@@ -139,10 +186,10 @@ async def ops_stream(websocket: WebSocket):
     settings = get_settings()
     r = redis.from_url(settings.redis_url)
     pubsub = r.pubsub()
-    await pubsub.subscribe("ops:events")
+    pubsub.subscribe("ops:events")
     try:
         while True:
-            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
+            message = pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
             if message:
                 data = message.get("data")
                 if isinstance(data, (bytes, bytearray)):
@@ -158,9 +205,9 @@ async def ops_stream(websocket: WebSocket):
             except asyncio.TimeoutError:
                 continue
     except WebSocketDisconnect:
-        await pubsub.unsubscribe("ops:events")
+        pubsub.unsubscribe("ops:events")
     finally:
         try:
-            await pubsub.unsubscribe("ops:events")
+            pubsub.unsubscribe("ops:events")
         except Exception:
             pass

@@ -1,31 +1,29 @@
 const IMPACTS = [
   {
-    title: "Low-carbon adoption",
-    detail: "Replace high-emission materials with evidence-backed alternatives."
+    title: "Defensible operations",
+    detail: "Every decision is tied to evidence, timestamps, and chain-of-custody markers."
   },
   {
-    title: "Regulatory compliance",
-    detail: "Deliver audit-ready records that meet government standards."
+    title: "Audit readiness",
+    detail: "Replay structures remain exportable for regulators, internal review, and incident reconstruction."
   },
   {
-    title: "Transparent reporting",
-    detail: "Give investors and communities defensible climate disclosures."
+    title: "Operational trust",
+    detail: "Operators see confidence, anomalies, and escalation history in one place."
   }
 ];
 
 const ImpactSection = () => {
   return (
-    <section className="bg-[#f4f8ff]">
-      <div className="mx-auto w-full max-w-6xl px-6 py-20 md:py-24">
-        <p className="text-xs uppercase tracking-[0.24em] text-[#476294]">Impact</p>
-        <h2 className="font-display mt-4 text-3xl font-bold text-[#0b1730] md:text-4xl">
-          Trusted climate records unlock real decarbonization.
-        </h2>
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
+    <section className="border-t border-white/10 bg-slate-950 px-6 py-12">
+      <div className="mx-auto w-full max-w-6xl rounded-[26px] border border-white/10 bg-white/5 p-6 text-slate-100">
+        <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Operational impact</p>
+        <h2 className="mt-3 text-2xl font-semibold text-white">The product reduces uncertainty, not just emissions risk.</h2>
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
           {IMPACTS.map((item) => (
-            <div key={item.title} className="rounded-2xl border border-[#d9e5fb] bg-white p-6 shadow-[0_10px_24px_rgba(20,40,90,0.08)]">
-              <p className="text-lg font-semibold text-[#12274e]">{item.title}</p>
-              <p className="mt-3 text-sm text-[#4b628f]">{item.detail}</p>
+            <div key={item.title} className="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+              <p className="text-sm font-semibold text-white">{item.title}</p>
+              <p className="mt-2 text-sm leading-6 text-slate-300">{item.detail}</p>
             </div>
           ))}
         </div>

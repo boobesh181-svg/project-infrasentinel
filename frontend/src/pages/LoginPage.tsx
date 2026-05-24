@@ -18,7 +18,7 @@ const LoginPage = () => {
     try {
       const response = await login(email, password);
       storeToken(response.access_token);
-      navigate("/app/dashboard");
+      navigate("/app/command-center");
     } catch (err: any) {
       setError(err?.message ?? "Login failed.");
     } finally {
@@ -30,9 +30,9 @@ const LoginPage = () => {
     <div>
       <div className="mb-6">
         <p className="text-xs uppercase tracking-[0.3em] text-slate">Secure Access</p>
-        <h2 className="text-2xl font-semibold text-ink">Compliance Login</h2>
+        <h2 className="text-2xl font-semibold text-ink">Verification Command Center Login</h2>
         <p className="mt-2 text-sm text-slate">
-          Sign in with your Infrasentinel credentials to continue.
+          Sign in to review live deliveries, anomalies, evidence, and audit replay.
         </p>
       </div>
 

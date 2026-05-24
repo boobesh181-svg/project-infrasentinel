@@ -6,17 +6,44 @@
 
 :root {
   font-family: "Manrope", "Segoe UI", sans-serif;
-  color: #0f172a;
-  background-color: #f8fafc;
+  color: #e2e8f0;
+  background-color: #020617;
+  color-scheme: dark;
 }
 
 body {
   min-height: 100vh;
-  background: #f8fafc;
+  background:
+    radial-gradient(circle at top, rgba(34, 211, 238, 0.16), transparent 28%),
+    radial-gradient(circle at 80% 20%, rgba(96, 165, 250, 0.14), transparent 26%),
+    radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.08), transparent 22%),
+    linear-gradient(180deg, #020617 0%, #07111f 52%, #020617 100%);
+  background-attachment: fixed;
+  color: #e2e8f0;
 }
 
 * {
   box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.2);
+  color: #f8fafc;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(2, 6, 23, 0.9);
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 2px solid rgba(2, 6, 23, 0.9);
+  background: rgba(148, 163, 184, 0.35);
 }
 
 input, select, textarea {
@@ -52,6 +79,125 @@ h3 {
 .label-text {
   font-size: 12px;
   font-weight: 500;
+}
+
+.operational-grid {
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+.operational-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.operational-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(2, 6, 23, 0.25), rgba(2, 6, 23, 0.4)),
+    radial-gradient(circle at 50% 0%, rgba(34, 211, 238, 0.08), transparent 35%);
+  z-index: -2;
+}
+
+.operational-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 100% 4px;
+  opacity: 0.3;
+  mix-blend-mode: screen;
+  z-index: -1;
+}
+
+.operational-glass {
+  backdrop-filter: blur(18px);
+}
+
+.operational-panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: linear-gradient(180deg, rgba(8, 15, 28, 0.92), rgba(15, 23, 42, 0.8));
+  box-shadow: 0 24px 80px rgba(2, 6, 23, 0.45);
+}
+
+.operational-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 26%);
+}
+
+.operational-panel::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.35), transparent);
+}
+
+.scanline {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(34, 211, 238, 0.06), transparent);
+  animation: scan-glide 7s linear infinite;
+}
+
+.pulse-ring {
+  box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.4);
+  animation: pulse-ring 2.2s infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.38);
+  }
+  70% {
+    box-shadow: 0 0 0 18px rgba(34, 211, 238, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0);
+  }
+}
+
+@keyframes scan-glide {
+  0% {
+    transform: translateY(-15%);
+  }
+  100% {
+    transform: translateY(115%);
+  }
+}
+
+@keyframes ambient-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -6px, 0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.45;
+  }
 }
 
 .font-display {

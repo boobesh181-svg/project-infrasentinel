@@ -1,62 +1,73 @@
 import {
-  Bell,
-  Boxes,
-  ClipboardList,
-  FileCheck,
-  FolderKanban,
   LayoutDashboard,
-  ShieldAlert,
   Shield,
-  SlidersHorizontal,
   TestTube
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const navItems = [
-  { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/app/projects", label: "Projects", icon: FolderKanban },
-  { to: "/app/material-entries", label: "Material Entries", icon: ClipboardList },
-  { to: "/app/evidence", label: "Evidence", icon: FileCheck },
-  { to: "/app/risk-center", label: "Risk Center", icon: ShieldAlert },
-  { to: "/app/bim-validation", label: "BIM Validation", icon: Boxes },
-  { to: "/app/supplier-confirmation", label: "Supplier Confirm", icon: Bell },
-  { to: "/app/notifications", label: "Notifications", icon: Bell },
-  { to: "/app/audit", label: "Audit Logs", icon: Shield },
-  { to: "/app/admin", label: "Admin", icon: SlidersHorizontal }
+  { to: "/app/command-center", label: "Command Center", icon: LayoutDashboard },
+  { to: "/app/replay", label: "Audit Replay", icon: Shield }
 ];
 
 const Sidebar = () => {
   return (
-    <aside className="hidden w-[260px] shrink-0 border-r border-slate-800 bg-slate-950 px-4 py-6 lg:block">
-      <div className="mb-8 flex items-center gap-2 px-2">
-        <div className="rounded-md bg-blue-600/20 p-2">
-          <TestTube className="h-5 w-5 text-blue-300" />
+    <aside className="hidden w-[300px] shrink-0 border-r border-white/10 bg-slate-950/90 px-4 py-6 lg:block">
+      <div className="mb-8 operational-panel rounded-[24px] px-4 py-4">
+        <div className="flex items-center gap-3">
+          <div className="pulse-ring rounded-xl bg-cyan-400/15 p-2">
+            <TestTube className="h-5 w-5 text-cyan-200" />
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.26em] text-slate-500">InfraSentinel</p>
+            <p className="text-sm font-semibold text-white">Verification Command Center</p>
+          </div>
         </div>
-        <div>
-          <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Infrasentinel</p>
-          <p className="text-sm font-semibold text-white">Compliance Cloud</p>
+        <div className="mt-4 flex items-center justify-between gap-2 text-xs text-slate-400">
+          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-emerald-100">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 pulse-ring" />
+            live ingest stream
+          </span>
+          <span className="text-[10px] uppercase tracking-[0.22em] text-slate-500">trusted lane</span>
         </div>
       </div>
 
-      <nav className="space-y-1">
+      <nav className="space-y-2">
         {navItems.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={`${to}-${label}`}
             to={to}
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all duration-150 ${
+              `group flex items-center gap-3 rounded-2xl border px-3 py-3 text-sm transition-all duration-200 ${
                 isActive
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-300 hover:bg-slate-900 hover:text-white"
+                  ? "border-cyan-400/30 bg-cyan-500/10 text-white shadow-[0_0_0_1px_rgba(34,211,238,0.12),0_18px_40px_rgba(8,145,178,0.14)]"
+                  : "border-white/5 text-slate-300 hover:border-white/10 hover:bg-white/5 hover:text-white"
               }`
             }
-            end={to === "/app/projects"}
+            end={to === "/app/replay"}
           >
-            <Icon className="h-4 w-4" />
+            <Icon className="h-4 w-4 text-cyan-300 transition group-hover:scale-105" />
             <span>{label}</span>
           </NavLink>
         ))}
       </nav>
+
+      <div className="mt-8 space-y-3 rounded-[24px] border border-white/10 bg-white/5 p-4">
+        <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.22em] text-slate-500">
+          <span>mission status</span>
+          <span>steady</span>
+        </div>
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3">
+            <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">latency</p>
+            <p className="mt-2 text-white">Nominal</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3">
+            <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">evidence</p>
+            <p className="mt-2 text-white">Locked</p>
+          </div>
+        </div>
+      </div>
     </aside>
   );
 };

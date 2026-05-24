@@ -7,9 +7,14 @@ export function useOpsSocket(onPayload: OnPayload) {
   const attemptsRef = useRef(0);
   const reconnectTimer = useRef<number | null>(null);
   const seen = useRef<Set<string>>(new Set());
+  const onPayloadRef = useRef(onPayload);
 
   useEffect(() => {
-    const url = (import.meta.env.VITE_API_WS_URL || "ws://127.0.0.1:8000") + "/stream/ops";
+    onPayloadRef.current = onPayload;
+  }, [onPayload]);
+
+  useEffect(() => {
+    const url = (import.meta.env.VITE_API_WS_URL || "ws://127.0.0.1:8000") + "/ops/stream/ops";
 
     const connect = () => {
       const ws = new WebSocket(url);
@@ -36,7 +41,7 @@ export function useOpsSocket(onPayload: OnPayload) {
               seen.current.delete(v);
             }
           }
-          onPayload(payload);
+          onPayloadRef.current(payload);
         } catch (e) {
           // ignore non-json messages
         }
@@ -76,7 +81,7 @@ export function useOpsSocket(onPayload: OnPayload) {
         wsRef.current?.close();
       } catch (e) {}
     };
-  }, [onPayload]);
+  }, []);
 
   return wsRef;
 }

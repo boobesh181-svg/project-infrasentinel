@@ -9,15 +9,15 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-blue-600 text-white hover:bg-blue-700",
-  secondary: "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50",
-  ghost: "text-slate-700 hover:bg-slate-100",
-  danger: "bg-red-600 text-white hover:bg-red-700"
+  primary: "border border-cyan-400/25 bg-cyan-500/15 text-cyan-50 shadow-[0_0_0_1px_rgba(34,211,238,0.08),0_12px_28px_rgba(8,145,178,0.18)] hover:border-cyan-300/40 hover:bg-cyan-500/22 hover:text-white",
+  secondary: "border border-white/10 bg-white/5 text-slate-100 shadow-[0_10px_24px_rgba(2,6,23,0.25)] hover:border-white/20 hover:bg-white/10",
+  ghost: "border border-transparent text-slate-300 hover:border-white/10 hover:bg-white/5 hover:text-white",
+  danger: "border border-rose-400/25 bg-rose-500/15 text-rose-50 shadow-[0_0_0_1px_rgba(251,113,133,0.08),0_12px_28px_rgba(190,18,60,0.16)] hover:border-rose-300/40 hover:bg-rose-500/22 hover:text-white"
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
   sm: "px-3 py-1.5 text-xs",
-  md: "px-4 py-2 text-sm"
+  md: "px-4 py-2.5 text-sm"
 };
 
 const Button = ({
@@ -30,7 +30,7 @@ const Button = ({
 }: ButtonProps) => {
   return (
     <button
-      className={`rounded-md font-medium transition-all duration-150 ${variantClasses[variant]} ${sizeClasses[size]} disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full font-semibold tracking-[0.01em] transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
       disabled={disabled}
       {...props}
     >

@@ -1,36 +1,31 @@
-import { motion } from "framer-motion";
-
 const NODES = [
-  "Construction Activity",
-  "Material Entry",
-  "Evidence Upload",
-  "Multi-party Attestation",
-  "Verification Workflow",
-  "Deterministic MRV Report",
-  "Verifiable Export Bundle"
+  "Delivery intake",
+  "Evidence capture",
+  "AI verification",
+  "Operator decision",
+  "Audit replay",
+  "Export bundle"
 ];
 
 const ArchitectureDiagram = () => {
   return (
-    <div className="mt-10 rounded-3xl border border-[#d9e5fb] bg-white p-8 shadow-[0_20px_40px_rgba(20,40,90,0.10)]">
-      <div className="space-y-4">
+    <div className="mt-6 rounded-3xl border border-white/10 bg-slate-950/70 p-6">
+      <div className="grid gap-3 md:grid-cols-3">
         {NODES.map((node, index) => (
-          <motion.div
+          <div
             key={node}
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.4 }}
-            transition={{ duration: 0.4, delay: index * 0.08 }}
-            className="flex items-center gap-4"
+            className="rounded-2xl border border-white/10 bg-white/5 p-4"
           >
-              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-[#bcd2ff] bg-[#edf4ff] text-xs font-semibold text-[#0f4cc9]">
-              {index + 1}
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-cyan-400/20 bg-cyan-500/10 text-xs font-semibold text-cyan-100">
+                {index + 1}
             </span>
-              <div className="flex-1 rounded-2xl border border-[#d9e5fb] bg-[#f8fbff] px-5 py-3">
-                <p className="text-sm font-semibold text-[#12274e]">{node}</p>
+              <div>
+                <p className="text-sm font-medium text-white">{node}</p>
+                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">operational checkpoint</p>
+              </div>
             </div>
-              {index < NODES.length - 1 ? <span className="h-8 w-px bg-[#d9e5fb]" /> : null}
-          </motion.div>
+          </div>
         ))}
       </div>
     </div>
