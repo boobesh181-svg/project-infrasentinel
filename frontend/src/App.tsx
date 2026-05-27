@@ -1,15 +1,11 @@
 import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import AppLayout from "./components/layout/AppLayout";
 import AuthLayout from "./layouts/AuthLayout";
-import AuditPage from "./pages/AuditPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import { useAuth } from "./hooks/useAuth";
-import OpsOverviewPage from "./pages/OpsOverviewPage";
-import SitePage from "./pages/SitePage";
-import VerificationPage from "./pages/VerificationPage";
-import InvoiceIntakePage from "./pages/InvoiceIntakePage";
-import LiveVerificationPage from "./pages/LiveVerificationPage";
-import WeighbridgeVerificationPage from "./pages/WeighbridgeVerificationPage";
+import CommandCenter from "./pages/CommandCenter";
+import Timeline from "./pages/Timeline";
+import AuditReplay from "./pages/AuditReplay";
 
 const LandingRedirect = () => {
   const { token } = useAuth();
@@ -56,18 +52,9 @@ const App = () => {
         }
       >
         <Route index element={<Navigate to="/app/command-center" replace />} />
-        <Route path="command-center" element={<OpsOverviewPage />} />
-        <Route path="command-center/live" element={<LiveVerificationPage />} />
-        <Route path="command-center/weighbridge/:deliveryId" element={<WeighbridgeVerificationPage />} />
-        <Route path="command-center/invoices" element={<InvoiceIntakePage />} />
-        <Route path="command-center/weighbridge/active" element={<CommandCenterRedirect to="/app/command-center" />} />
-        <Route path="command-center/site/:siteId" element={<SitePage />} />
-        <Route path="command-center/delivery/:deliveryId" element={<VerificationPage />} />
-        <Route path="replay" element={<AuditPage />} />
-
-        <Route path="audit" element={<Navigate to="/app/replay" replace />} />
-        <Route path="ops/site/:siteId" element={<LegacySiteRedirect />} />
-        <Route path="verify/:deliveryId" element={<LegacyVerificationRedirect />} />
+        <Route path="command-center" element={<CommandCenter />} />
+        <Route path="timeline" element={<Timeline />} />
+        <Route path="replay" element={<AuditReplay />} />
         <Route path="*" element={<CommandCenterRedirect to="/app/command-center" />} />
       </Route>
 

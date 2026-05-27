@@ -1,0 +1,13 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='720' viewBox='0 0 1200 720'>
+  <rect width='1200' height='720' fill='#051018'/>
+  <text x='600' y='64' fill='#9be7ff' font-family='sans-serif' font-size='26' text-anchor='middle'>Weighbridge Camera · Scale A</text>
+  <rect x='120' y='120' width='960' height='420' rx='16' fill='#071620' stroke='#0ea5a4' stroke-opacity='0.06'/>
+  <g transform='translate(150,200)'>
+    <rect x='0' y='80' width='760' height='220' rx='12' fill='#0a1a20'/>
+    <text x='380' y='140' fill='#e6f9fb' font-family='sans-serif' font-size='22' text-anchor='middle'>Platform view — vehicle centered</text>
+    <text x='380' y='200' fill='#9fbec6' font-family='monospace' font-size='20' text-anchor='middle'>Gross: 28.50 t · Tare: 2.10 t · Net: 26.40 t</text>
+  </g>
+  <g transform='translate(60,560)'>
+    <text x='20' y='28' fill='#95dfe8' font-family='sans-serif' font-size='14'>Captured: 2026-05-27 08:16:05 · Sensor: WB-1</text>
+  </g>
+</svg>

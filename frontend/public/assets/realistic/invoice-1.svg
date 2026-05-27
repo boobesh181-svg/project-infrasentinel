@@ -1,0 +1,10 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='900' height='1200' viewBox='0 0 900 1200'>
+  <rect width='900' height='1200' fill='#071026'/>
+  <rect x='40' y='40' width='820' height='1120' rx='12' fill='#001219' stroke='#0ea5a4' stroke-opacity='0.06'/>
+  <text x='450' y='120' fill='#cfeff6' font-family='sans-serif' font-size='34' text-anchor='middle'>INVOICE PREVIEW</text>
+  <text x='80' y='220' fill='#bcdff0' font-family='monospace' font-size='20'>Invoice ID: INV-26045-54321</text>
+  <text x='80' y='260' fill='#bcdff0' font-family='monospace' font-size='20'>Supplier: Narayana Sand Co.</text>
+  <rect x='80' y='320' width='720' height='56' rx='8' fill='#08121a'/>
+  <text x='80' y='360' fill='#9fbec6' font-family='monospace' font-size='18'>Line 1 — 20.00 t — 2,000/unit</text>
+  <text x='80' y='400' fill='#9fbec6' font-family='monospace' font-size='18'>Line 2 — 6.40 t — 2,000/unit</text>
+</svg>

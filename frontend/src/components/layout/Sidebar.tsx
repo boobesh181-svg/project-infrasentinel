@@ -9,9 +9,8 @@ import { NavLink } from "react-router-dom";
 
 const navItems = [
   { to: "/app/command-center", label: "Command Center", icon: LayoutDashboard },
-  { to: "/app/command-center/live", label: "Live Verification", icon: Radar },
-  { to: "/app/command-center/weighbridge/active", label: "Weighbridge Lane", icon: Scale },
-  { to: "/app/replay", label: "Audit Replay", icon: Shield }
+  { to: "/app/timeline", label: "Verification Timeline", icon: Radar },
+  { to: "/app/replay", label: "Incident Replay", icon: Shield }
 ];
 
 const Sidebar = () => {

@@ -1,0 +1,8 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='720' viewBox='0 0 1200 720'>
+  <rect width='1200' height='720' fill='#03060a'/>
+  <text x='600' y='64' fill='#9be7ff' font-family='sans-serif' font-size='22' text-anchor='middle'>Crusher Plant · Operational Overview</text>
+  <g transform='translate(80,120)'>
+    <rect x='0' y='0' width='1040' height='520' rx='12' fill='#071018' stroke='#062022' stroke-opacity='0.06'/>
+    <text x='520' y='120' fill='#e6f9fb' font-family='sans-serif' font-size='20' text-anchor='middle'>Primary crushing line active</text>
+  </g>
+</svg>

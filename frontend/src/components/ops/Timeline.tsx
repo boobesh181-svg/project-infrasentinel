@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import {
   AlertTriangle,
@@ -106,6 +106,9 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
   const [supplierQuery, setSupplierQuery] = useState("");
   const [previewEvidence, setPreviewEvidence] = useState<any | null>(null);
   const [lightboxEvidence, setLightboxEvidence] = useState<any | null>(null);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const itemRefs = useRef<Array<HTMLElement | null>>([]);
 
   const events = useMemo<TimelineEvent[]>(() => {
     const evidence = delivery?.evidence ?? [];
@@ -334,8 +337,24 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
     ? lightboxEvidence.storage_path
     : null;
 
+  useEffect(() => {
+    if (!isPlaying) return;
+    const timer = setInterval(() => {
+      setCurrentIndex((i) => {
+        const next = i + 1 < filteredEvents.length ? i + 1 : 0;
+        const el = itemRefs.current[next];
+        if (el && typeof el.scrollIntoView === 'function') {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return next;
+      });
+    }, 2200);
+    return () => clearInterval(timer);
+  }, [isPlaying, filteredEvents.length]);
+
   return (
-    <div className="space-y-6">
+    <>
+      <div className="space-y-6">
       <section className="rounded-[28px] border border-cyan-400/10 bg-gradient-to-br from-slate-950/90 via-slate-950/80 to-cyan-950/30 p-6 shadow-[0_24px_80px_rgba(2,6,23,0.55)]">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -541,13 +560,47 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
             })}
           </div>
         </div>
+        <div className="mt-4 flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsPlaying((p) => !p)}
+              className="rounded-full border border-white/10 bg-white/5 p-2 text-sm text-slate-300"
+            >
+              {isPlaying ? 'Pause' : 'Play'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
+              className="rounded-full border border-white/10 bg-white/5 p-2 text-sm text-slate-300"
+            >
+              Prev
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentIndex((i) => Math.min(filteredEvents.length - 1, i + 1))}
+              className="rounded-full border border-white/10 bg-white/5 p-2 text-sm text-slate-300"
+            >
+              Next
+            </button>
+          </div>
+          <div className="text-xs text-slate-400">Replay index: {currentIndex + 1} / {Math.max(1, filteredEvents.length)}</div>
+        </div>
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
         <section className="space-y-4">
           {filteredEvents.length ? (
             filteredEvents.map((event, index) => (
-              <article key={event.id} className="rounded-[26px] border border-white/10 bg-gradient-to-br from-slate-950/80 via-slate-950/70 to-slate-900/60 p-5 shadow-[0_18px_60px_rgba(2,6,23,0.38)]">
+              <article
+                key={event.id}
+                ref={(el) => (itemRefs.current[index] = el)}
+                className={`relative rounded-[26px] border p-5 shadow-[0_18px_60px_rgba(2,6,23,0.38)] transition ${
+                  index === currentIndex ? 'border-cyan-400/50 bg-gradient-to-br from-slate-900/70 to-cyan-950/10 scale-[1.01]' : 'border-white/10 bg-gradient-to-br from-slate-950/80 via-slate-950/70 to-slate-900/60'
+                }`}
+              >
+                <span className="absolute left-4 top-6 h-3 w-3 rounded-full bg-cyan-300" />
+                {index !== filteredEvents.length - 1 && <span className="absolute left-5 top-14 bottom-5 w-px bg-white/6" />}
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
@@ -891,6 +944,7 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
         </div>
       </div>
     ) : null}
+    </>
   );
 };
 

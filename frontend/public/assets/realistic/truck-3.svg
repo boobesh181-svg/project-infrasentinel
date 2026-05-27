@@ -1,0 +1,8 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='720' viewBox='0 0 1200 720'>
+  <rect width='1200' height='720' fill='#061018'/>
+  <g transform='translate(80,200)'>
+    <rect x='0' y='120' width='840' height='220' rx='26' fill='#0b1720'/>
+    <text x='420' y='80' fill='#9be7ff' font-family='monospace' font-size='42' text-anchor='middle'>TN-12-XY9876</text>
+    <text x='420' y='140' fill='#cfeff6' font-family='sans-serif' font-size='16' text-anchor='middle'>Arrival — Gate Camera</text>
+  </g>
+</svg>

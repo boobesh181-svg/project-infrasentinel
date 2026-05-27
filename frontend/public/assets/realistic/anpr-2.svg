@@ -1,0 +1,7 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'>
+  <rect width='800' height='600' fill='#030814'/>
+  <text x='400' y='120' fill='#cfeff6' font-family='sans-serif' font-size='26' text-anchor='middle'>ANPR SNAPSHOT</text>
+  <rect x='180' y='220' width='440' height='80' rx='8' fill='#001219'/>
+  <text x='400' y='270' fill='#7fffd4' font-family='monospace' font-size='36' text-anchor='middle'>TN-87-XZ2345</text>
+  <text x='400' y='330' fill='#9fbec6' font-family='sans-serif' font-size='14' text-anchor='middle'>Confidence: 0.91 · Camera: Gate ANPR</text>
+</svg>
