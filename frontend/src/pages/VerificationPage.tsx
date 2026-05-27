@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Card from "../components/ui/Card";
 import { getDelivery, verifyDelivery } from "../api/ops";
+import { getWeighbridgeByDelivery } from "../api/weighbridge";
 import OperationsLayout from "../components/layout/OperationsLayout";
 import EvidenceModal from "../components/ops/EvidenceModal";
 import Timeline from "../components/ops/Timeline";
@@ -14,6 +15,7 @@ import { panelReveal, staggerContainer, staggerItem } from "../animations/varian
 const VerificationPage = () => {
   const { deliveryId } = useParams();
   const [delivery, setDelivery] = useState<any | null>(null);
+  const [weighbridge, setWeighbridge] = useState<any | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalEvidence, setModalEvidence] = useState<any | null>(null);
@@ -21,8 +23,12 @@ const VerificationPage = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const resp = await getDelivery(deliveryId!);
-        setDelivery(resp);
+        const [deliveryResp, weighbridgeResp] = await Promise.all([
+          getDelivery(deliveryId!),
+          getWeighbridgeByDelivery(deliveryId!)
+        ]);
+        setDelivery(deliveryResp);
+        setWeighbridge(weighbridgeResp);
       } catch (err) {
         console.error(err);
       }
@@ -34,8 +40,12 @@ const VerificationPage = () => {
     setIsSubmitting(true);
     try {
       await verifyDelivery(deliveryId!, { action });
-      const resp = await getDelivery(deliveryId!);
-      setDelivery(resp);
+      const [deliveryResp, weighbridgeResp] = await Promise.all([
+        getDelivery(deliveryId!),
+        getWeighbridgeByDelivery(deliveryId!)
+      ]);
+      setDelivery(deliveryResp);
+      setWeighbridge(weighbridgeResp);
     } catch (err) {
       console.error(err);
     } finally {
@@ -95,6 +105,7 @@ const VerificationPage = () => {
           <motion.div variants={panelReveal} initial="hidden" animate="visible">
             <Timeline
               delivery={delivery}
+              weighbridge={weighbridge}
               isSubmitting={isSubmitting}
               onOpenEvidence={(evidence) => {
                 setModalEvidence(evidence);

@@ -3,10 +3,16 @@ export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        display: ["Space Grotesk", "Segoe UI", "sans-serif"],
+        body: ["IBM Plex Sans", "Segoe UI", "sans-serif"]
+      },
       colors: {
         void: "#020617",
         obsidian: "#0f172a",
         steel: "#1e293b",
+        graphite: "#0b1220",
+        haze: "#0e1628",
         signal: {
           50: "#ecfeff",
           100: "#cffafe",
@@ -47,6 +53,7 @@ export default {
       boxShadow: {
         panel: "0 18px 44px rgba(2, 6, 23, 0.35)",
         panelStrong: "0 28px 80px rgba(2, 6, 23, 0.55)",
+        panelDeep: "0 32px 100px rgba(2, 6, 23, 0.7)",
         halo: "0 0 0 1px rgba(34, 211, 238, 0.12), 0 18px 60px rgba(34, 211, 238, 0.12)",
         soft: "0 6px 18px rgba(15, 23, 42, 0.18)"
       }

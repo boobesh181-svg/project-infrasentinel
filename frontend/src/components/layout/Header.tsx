@@ -6,6 +6,9 @@ import Button from "../ui/Button";
 const titleMap: Record<string, string> = {
   "/app/command-center/site": "Site Queue",
   "/app/command-center/delivery": "Delivery Review",
+  "/app/command-center/live": "Live Verification",
+  "/app/command-center/weighbridge": "Weighbridge Verification",
+  "/app/command-center/invoices": "Invoice Intake",
   "/app/command-center": "Command Center",
   "/app/replay": "Audit Replay"
 };
@@ -20,7 +23,7 @@ const Header = () => {
     "Infrasentinel";
 
   return (
-    <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-950/80 px-4 py-4 backdrop-blur operational-glass md:px-6">
+    <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-950/75 px-4 py-4 backdrop-blur operational-glass md:px-6">
       <div className="flex items-center justify-between gap-4">
         <div>
           <div className="mb-3 flex flex-wrap items-center gap-3 text-[10px] uppercase tracking-[0.26em] text-slate-400">
@@ -31,8 +34,8 @@ const Header = () => {
             <span>real-time verification</span>
             <span>latency nominal</span>
           </div>
-          <h1 className="text-[25px] font-semibold tracking-[-0.02em] text-white md:text-[30px]">{pageTitle}</h1>
-          <p className="text-sm text-slate-400">Real-time infrastructure verification, evidence linkage, and incident replay</p>
+          <h1 className="text-[25px] font-semibold tracking-[-0.02em] text-white font-display md:text-[30px]">{pageTitle}</h1>
+          <p className="text-sm text-slate-400">Infrastructure verification, evidence linkage, and incident replay in one surface.</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 md:flex">

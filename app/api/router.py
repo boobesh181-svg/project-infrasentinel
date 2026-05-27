@@ -15,6 +15,7 @@ from app.api.emission_factors import router as emission_factor_router
 from app.api.evidence import router as evidence_router
 from app.api.health import router as health_router
 from app.api.integrity import router as integrity_router
+from app.api.invoices import router as invoice_router
 from app.api.material_entries import router as material_router
 from app.api.material_events import router as material_event_router
 from app.api.material_event_evidence import router as material_event_evidence_router
@@ -28,6 +29,7 @@ from app.api.supplier_confirmation import router as supplier_confirmation_router
 from app.api.user_keys import router as user_keys_router
 from app.api.verification import router as verification_router
 from app.api.verification_reports import router as verification_report_router
+from app.api.weighbridge import router as weighbridge_router
 
 router = APIRouter()
 router.include_router(ai_router)
@@ -41,6 +43,7 @@ router.include_router(bim_router)
 router.include_router(project_router)
 router.include_router(project_verification_report_router)
 router.include_router(integrity_router)
+router.include_router(invoice_router)
 router.include_router(emission_factor_router)
 router.include_router(supplier_router)
 router.include_router(supplier_confirmation_router)
@@ -55,6 +58,7 @@ router.include_router(audit_router)
 router.include_router(evidence_router)
 router.include_router(report_router)
 router.include_router(verification_report_router)
+router.include_router(weighbridge_router)
 router.include_router(debug_router)
 router.include_router(health_router, tags=["health"])
 router.include_router(ops_router)

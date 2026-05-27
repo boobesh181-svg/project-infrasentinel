@@ -7,6 +7,9 @@ import { useAuth } from "./hooks/useAuth";
 import OpsOverviewPage from "./pages/OpsOverviewPage";
 import SitePage from "./pages/SitePage";
 import VerificationPage from "./pages/VerificationPage";
+import InvoiceIntakePage from "./pages/InvoiceIntakePage";
+import LiveVerificationPage from "./pages/LiveVerificationPage";
+import WeighbridgeVerificationPage from "./pages/WeighbridgeVerificationPage";
 
 const LandingRedirect = () => {
   const { token } = useAuth();
@@ -54,29 +57,18 @@ const App = () => {
       >
         <Route index element={<Navigate to="/app/command-center" replace />} />
         <Route path="command-center" element={<OpsOverviewPage />} />
+        <Route path="command-center/live" element={<LiveVerificationPage />} />
+        <Route path="command-center/weighbridge/:deliveryId" element={<WeighbridgeVerificationPage />} />
+        <Route path="command-center/invoices" element={<InvoiceIntakePage />} />
+        <Route path="command-center/weighbridge/active" element={<CommandCenterRedirect to="/app/command-center" />} />
         <Route path="command-center/site/:siteId" element={<SitePage />} />
         <Route path="command-center/delivery/:deliveryId" element={<VerificationPage />} />
         <Route path="replay" element={<AuditPage />} />
 
-        <Route path="dashboard" element={<CommandCenterRedirect to="/app/command-center" />} />
-        <Route path="projects" element={<CommandCenterRedirect to="/app/command-center" />} />
-        <Route path="material-entries" element={<CommandCenterRedirect to="/app/command-center" />} />
-        <Route path="projects/:projectId" element={<CommandCenterRedirect to="/app/command-center" />} />
-        <Route path="projects/:projectId/bim" element={<CommandCenterRedirect to="/app/command-center" />} />
-        <Route path="projects/:projectId/material-entries/new" element={<CommandCenterRedirect to="/app/command-center" />} />
-        <Route path="material-entries/:entryId" element={<CommandCenterRedirect to="/app/command-center" />} />
-        <Route path="material-entries/:entryId/acknowledgements" element={<CommandCenterRedirect to="/app/command-center" />} />
-        <Route path="evidence" element={<CommandCenterRedirect to="/app/command-center" />} />
-        <Route path="material-entries/:entryId/evidence" element={<CommandCenterRedirect to="/app/command-center" />} />
-        <Route path="supplier-confirmation" element={<CommandCenterRedirect to="/app/command-center" />} />
-        <Route path="risk-center" element={<CommandCenterRedirect to="/app/command-center" />} />
-        <Route path="bim-validation" element={<CommandCenterRedirect to="/app/command-center" />} />
-        <Route path="notifications" element={<CommandCenterRedirect to="/app/command-center" />} />
         <Route path="audit" element={<Navigate to="/app/replay" replace />} />
-        <Route path="ops" element={<Navigate to="/app/command-center" replace />} />
         <Route path="ops/site/:siteId" element={<LegacySiteRedirect />} />
         <Route path="verify/:deliveryId" element={<LegacyVerificationRedirect />} />
-        <Route path="admin" element={<CommandCenterRedirect to="/app/command-center" />} />
+        <Route path="*" element={<CommandCenterRedirect to="/app/command-center" />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

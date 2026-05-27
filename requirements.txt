@@ -23,3 +23,6 @@ sentry-sdk[fastapi]==2.18.0
 opentelemetry-instrumentation-fastapi==0.48b0
 slowapi==0.1.9
 redis==5.2.1
+pytesseract==0.3.13
+Pillow==10.4.0
+pdfplumber==0.11.4

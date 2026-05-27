@@ -1,5 +1,7 @@
 import {
   LayoutDashboard,
+  Radar,
+  Scale,
   Shield,
   TestTube
 } from "lucide-react";
@@ -7,20 +9,22 @@ import { NavLink } from "react-router-dom";
 
 const navItems = [
   { to: "/app/command-center", label: "Command Center", icon: LayoutDashboard },
+  { to: "/app/command-center/live", label: "Live Verification", icon: Radar },
+  { to: "/app/command-center/weighbridge/active", label: "Weighbridge Lane", icon: Scale },
   { to: "/app/replay", label: "Audit Replay", icon: Shield }
 ];
 
 const Sidebar = () => {
   return (
-    <aside className="hidden w-[300px] shrink-0 border-r border-white/10 bg-slate-950/90 px-4 py-6 lg:block">
-      <div className="mb-8 operational-panel rounded-[24px] px-4 py-4">
+    <aside className="hidden w-[312px] shrink-0 border-r border-white/10 bg-slate-950/85 px-5 py-6 lg:block">
+      <div className="mb-8 rounded-[26px] border border-white/10 bg-gradient-to-br from-slate-950/90 via-slate-950/70 to-slate-900/60 px-4 py-4 shadow-[0_20px_60px_rgba(2,6,23,0.5)]">
         <div className="flex items-center gap-3">
           <div className="pulse-ring rounded-xl bg-cyan-400/15 p-2">
             <TestTube className="h-5 w-5 text-cyan-200" />
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-[0.26em] text-slate-500">InfraSentinel</p>
-            <p className="text-sm font-semibold text-white">Verification Command Center</p>
+            <p className="text-sm font-semibold text-white font-display">Verification Command Center</p>
           </div>
         </div>
         <div className="mt-4 flex items-center justify-between gap-2 text-xs text-slate-400">

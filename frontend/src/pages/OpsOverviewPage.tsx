@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, ChevronRight, Clock3, Radar, RadioTower, ShieldAlert, Sparkles, Waves } from "lucide-react";
+import { ArrowRight, ChevronRight, Clock3, Radar, ShieldAlert, Sparkles, Waves } from "lucide-react";
 import { Link } from "react-router-dom";
 import { fetchSites } from "../api/ops";
+import { listInvoices } from "../api/invoices";
 import OperationsLayout from "../components/layout/OperationsLayout";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
@@ -16,6 +17,7 @@ const OpsOverviewPage = () => {
   const [sites, setSites] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [recentEvents, setRecentEvents] = useState<any[]>([]);
+  const [recentInvoices, setRecentInvoices] = useState<any[]>([]);
 
   useEffect(() => {
     const load = async () => {
@@ -30,6 +32,18 @@ const OpsOverviewPage = () => {
       }
     };
     void load();
+  }, []);
+
+  useEffect(() => {
+    const loadInvoices = async () => {
+      try {
+        const response = await listInvoices();
+        setRecentInvoices(response.items || []);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    void loadInvoices();
   }, []);
 
   useOpsSocket((payload) => {
@@ -98,8 +112,12 @@ const OpsOverviewPage = () => {
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
-                <Button>Open replay</Button>
-                <Button variant="secondary">Inspect live queue</Button>
+                <Link to="/app/replay">
+                  <Button>Open replay</Button>
+                </Link>
+                <Link to="/app/command-center/live">
+                  <Button variant="secondary">Launch live verification</Button>
+                </Link>
                 <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-emerald-100">
                   <span className="h-2 w-2 rounded-full bg-emerald-400 pulse-ring" />
                   websocket active
@@ -113,11 +131,14 @@ const OpsOverviewPage = () => {
                 { label: "Queued", value: loading ? "…" : totalQueue, tone: "text-emerald-100" },
                 { label: "Signals", value: recentEvents.length, tone: "text-white" }
               ].map((item) => (
-                <motion.div key={item.label} variants={staggerItem} className="rounded-[22px] border border-white/10 bg-white/5 p-4 shadow-[0_18px_40px_rgba(2,6,23,0.2)]">
-                  <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">{item.label}</p>
+                <motion.div key={item.label} variants={staggerItem} className="rounded-[24px] border border-white/10 bg-slate-950/70 p-4 shadow-[0_18px_40px_rgba(2,6,23,0.35)]">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">{item.label}</p>
+                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-300/80" />
+                  </div>
                   <p className={`mt-3 text-3xl font-semibold ${item.tone}`}>{item.value}</p>
-                  <div className="mt-4 h-1 overflow-hidden rounded-full bg-white/5">
-                    <div className="h-full w-2/3 rounded-full bg-gradient-to-r from-cyan-400/80 via-sky-400/60 to-emerald-400/80" />
+                  <div className="mt-4 h-1 overflow-hidden rounded-full bg-white/10">
+                    <div className="h-full w-2/3 rounded-full bg-cyan-400/70" />
                   </div>
                 </motion.div>
               ))}
@@ -249,6 +270,36 @@ const OpsOverviewPage = () => {
           </motion.div>
 
           <motion.div variants={panelReveal} initial="hidden" animate="visible" className="space-y-6">
+            <Card title="Invoice Intake" subtitle="Supplier invoices queued for extraction and linkage.">
+              <div className="space-y-3">
+                {recentInvoices.length ? (
+                  recentInvoices.slice(0, 3).map((invoice) => (
+                    <div key={invoice.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-sm font-semibold text-white">{invoice.supplier_name || "Unknown supplier"}</p>
+                          <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
+                            {invoice.invoice_number || "Invoice"} · {invoice.vehicle_number || "Vehicle"}
+                          </p>
+                        </div>
+                        <Badge label={invoice.extraction_status || "EXTRACTED"} />
+                      </div>
+                      <div className="mt-3 flex items-center justify-between gap-3 text-xs text-slate-400">
+                        <span>{invoice.uploaded_at ? new Date(invoice.uploaded_at).toLocaleString() : "Live"}</span>
+                        <Link to="/app/command-center/invoices" className="inline-flex items-center gap-2 text-cyan-200">
+                          Review intake <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-5 text-sm text-slate-400">
+                    No invoices ingested yet.
+                  </div>
+                )}
+              </div>
+            </Card>
+
             <Card title="Escalation Queue" subtitle="Anomalies and operator actions appear here first.">
               <div className="space-y-3">
                 {escalationEvents.length ? (

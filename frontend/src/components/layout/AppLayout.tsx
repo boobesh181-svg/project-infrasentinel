@@ -7,7 +7,7 @@ const AppLayout = () => {
   const location = useLocation();
 
   return (
-    <div className="operational-shell min-h-screen bg-slate-950 text-slate-100">
+    <div className="operational-shell min-h-screen bg-slate-950 text-slate-100 font-body">
       <div className="operational-grid min-h-screen bg-[linear-gradient(180deg,rgba(2,6,23,0.9),rgba(2,6,23,0.98))]">
         <div className="flex min-h-screen bg-slate-950/45">
           <Sidebar />

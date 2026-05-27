@@ -7,6 +7,7 @@ from app.schemas.material_entry import MaterialEntryCreate, MaterialEntryOut
 from app.schemas.mrv_report import MRVReportGenerate, MRVReportOut
 from app.schemas.notification import NotificationOut
 from app.schemas.project import ProjectCreate, ProjectOut
+from app.schemas.invoice import SupplierInvoiceOut, SupplierInvoiceListOut
 
 __all__ = [
 	"AttestationCreate",
@@ -23,4 +24,6 @@ __all__ = [
 	"ProjectCreate",
 	"ProjectOut",
 	"Token",
+	"SupplierInvoiceOut",
+	"SupplierInvoiceListOut",
 ]

@@ -17,8 +17,8 @@ const EvidenceCard = ({ evidence, onOpen }: Props) => {
   const canPreview = Boolean(evidence?.storage_path && isImage(evidence));
 
   return (
-    <article className="group overflow-hidden rounded-[22px] border border-white/10 bg-slate-950/80 shadow-[0_16px_35px_rgba(2,6,23,0.3)] transition hover:border-cyan-400/25 hover:shadow-[0_20px_50px_rgba(2,6,23,0.45)]">
-      <div className="flex gap-4 p-3">
+    <article className="group overflow-hidden rounded-[24px] border border-white/10 bg-gradient-to-br from-slate-950/85 via-slate-950/70 to-slate-900/60 shadow-[0_18px_40px_rgba(2,6,23,0.4)] transition hover:border-cyan-400/25 hover:shadow-[0_24px_60px_rgba(2,6,23,0.55)]">
+      <div className="flex gap-4 p-4">
         <button
           type="button"
           onClick={() => onOpen?.(evidence)}

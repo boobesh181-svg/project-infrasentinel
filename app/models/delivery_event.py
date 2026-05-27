@@ -4,8 +4,9 @@ from datetime import datetime, timezone
 from typing import List
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, Float, ForeignKey, Index, String
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, String
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -25,6 +26,13 @@ class DeliveryEvent(Base):
     supplier: Mapped[str] = mapped_column(String(255), nullable=True)
     expected_quantity: Mapped[float] = mapped_column(Float, nullable=True)
     detected_quantity: Mapped[float] = mapped_column(Float, nullable=True)
+    detected_plate: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    detected_material_type: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    detection_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+    anpr_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+    duplicate_vehicle: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    suspicious_flags: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
+    detected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     gps_lat: Mapped[float] = mapped_column(Float, nullable=True)
     gps_lng: Mapped[float] = mapped_column(Float, nullable=True)
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
@@ -34,3 +42,4 @@ class DeliveryEvent(Base):
 
     evidence: Mapped[List["EvidenceAsset"]] = relationship(back_populates="delivery_event", passive_deletes=True)
     verification_results: Mapped[List["VerificationResult"]] = relationship(back_populates="delivery_event", passive_deletes=True)
+    invoice_links: Mapped[List["InvoiceDeliveryLink"]] = relationship(back_populates="delivery_event", passive_deletes=True)

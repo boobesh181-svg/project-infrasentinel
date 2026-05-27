@@ -21,11 +21,11 @@ type TimelineItem = {
 
 const iconForAction = (action: string) => {
   const normalized = action.toLowerCase();
-  if (normalized.includes("submit")) return <Send className="h-4 w-4 text-blue-600" />;
-  if (normalized.includes("verify")) return <CheckCircle2 className="h-4 w-4 text-green-600" />;
-  if (normalized.includes("approve")) return <ShieldCheck className="h-4 w-4 text-emerald-600" />;
-  if (normalized.includes("lock")) return <Lock className="h-4 w-4 text-slate-700" />;
-  return <ClipboardCheck className="h-4 w-4 text-slate-600" />;
+  if (normalized.includes("submit")) return <Send className="h-4 w-4 text-cyan-300" />;
+  if (normalized.includes("verify")) return <CheckCircle2 className="h-4 w-4 text-emerald-300" />;
+  if (normalized.includes("approve")) return <ShieldCheck className="h-4 w-4 text-emerald-300" />;
+  if (normalized.includes("lock")) return <Lock className="h-4 w-4 text-slate-400" />;
+  return <ClipboardCheck className="h-4 w-4 text-slate-400" />;
 };
 
 const AuditPage = () => {

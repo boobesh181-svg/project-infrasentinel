@@ -28,6 +28,9 @@ from app.models.user import User, UserRole
 from app.models.verification_record import VerificationRecord
 from app.models.delivery_event import DeliveryEvent
 from app.models.verification_result import VerificationResult
+from app.models.supplier_invoice import SupplierInvoice, InvoiceStatus
+from app.models.invoice_delivery_link import InvoiceDeliveryLink
+from app.models.weighbridge_event import WeighbridgeEvent, WeighbridgeStatus
 
 __all__ = [
     "Attestation",
@@ -66,4 +69,9 @@ __all__ = [
     "VerificationRecord",
     "DeliveryEvent",
     "VerificationResult",
+    "SupplierInvoice",
+    "InvoiceStatus",
+    "InvoiceDeliveryLink",
+    "WeighbridgeEvent",
+    "WeighbridgeStatus",
 ]
