@@ -13,6 +13,7 @@ const InvoiceEvidenceModal = ({ open, invoice, previewUrl, onClose }: Props) => 
 
   const contentType = invoice.content_type || invoice.file_type || "";
   const isImage = contentType.startsWith("image/");
+  const isVideo = contentType.startsWith("video/");
   const isPdf = contentType === "application/pdf";
 
   return (
@@ -49,6 +50,8 @@ const InvoiceEvidenceModal = ({ open, invoice, previewUrl, onClose }: Props) => 
             <div className="overflow-hidden rounded-[24px] border border-white/10 bg-black/40 shadow-[0_20px_60px_rgba(2,6,23,0.35)]">
               {previewUrl && isImage ? (
                 <img src={previewUrl} alt={invoice.file_name} className="h-full w-full object-cover" />
+              ) : previewUrl && isVideo ? (
+                <video src={previewUrl} controls className="h-full w-full object-cover" poster={invoice.poster || undefined} />
               ) : previewUrl && isPdf ? (
                 <iframe title="Invoice preview" src={previewUrl} className="h-[560px] w-full" />
               ) : (

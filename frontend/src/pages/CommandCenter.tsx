@@ -55,7 +55,7 @@ const CommandCenter = () => {
   const anomalyCount = useMemo(() => events.filter((e) => e.anomaly).length, [events]);
 
   return (
-    <OperationsLayout>
+    <OperationsLayout kicker="InfraSentinel / Command Center" title="Command Center" badges={["live operations", "active verification"]}>
       <div className="space-y-4">
         <section className="operational-panel rounded-[24px] px-5 py-4 md:px-6 md:py-5">
           <div className="flex items-start justify-between gap-4">

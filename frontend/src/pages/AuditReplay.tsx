@@ -43,14 +43,14 @@ const AuditReplay = () => {
   };
 
   return (
-    <OperationsLayout>
+    <OperationsLayout kicker="InfraSentinel / Incident Investigation" title="Incident Investigation" badges={["forensic workspace", "deep investigation"]}>
       <div className="space-y-6">
         <section className="operational-panel rounded-[28px] px-5 py-5 md:px-6 md:py-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Investigation</p>
-              <h1 className="font-display text-2xl font-semibold tracking-[-0.02em] text-white">Incident / Audit Replay</h1>
-              <p className="mt-1 text-sm text-slate-300">Replay the full evidence chain, invoice comparison and verification checkpoints for a selected delivery.</p>
+              <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">AI-Assisted Forensic Analysis</p>
+              <h1 className="font-display text-2xl font-semibold tracking-[-0.02em] text-white">Incident Investigation</h1>
+              <p className="mt-1 text-sm text-slate-300">This surface exists only for flagged deliveries, anomaly analysis, and synchronized evidence reconstruction.</p>
             </div>
             <div className="text-right">
               <p className="text-xs text-slate-400">Delivery</p>

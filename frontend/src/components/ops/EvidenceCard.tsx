@@ -13,8 +13,14 @@ const isImage = (evidence: any) => {
   return contentType.startsWith("image/") || fileType.includes("image");
 };
 
+const isVideo = (evidence: any) => {
+  const contentType = String(evidence?.content_type || "").toLowerCase();
+  const fileType = String(evidence?.file_type || "").toLowerCase();
+  return contentType.startsWith("video/") || fileType.includes("mp4") || String(evidence?.storage_path || "").toLowerCase().endsWith(".mp4");
+};
+
 const EvidenceCard = ({ evidence, onOpen }: Props) => {
-  const canPreview = Boolean(evidence?.storage_path && isImage(evidence));
+  const canPreview = Boolean(evidence?.storage_path && (isImage(evidence) || isVideo(evidence)));
 
   return (
     <article className="group overflow-hidden rounded-[24px] border border-white/10 bg-gradient-to-br from-slate-950/85 via-slate-950/70 to-slate-900/60 shadow-[0_18px_40px_rgba(2,6,23,0.4)] transition hover:border-cyan-400/25 hover:shadow-[0_24px_60px_rgba(2,6,23,0.55)]">
@@ -26,7 +32,11 @@ const EvidenceCard = ({ evidence, onOpen }: Props) => {
           title={canPreview ? "Open preview" : "Evidence preview"}
         >
           {canPreview ? (
-            <img src={evidence.storage_path} alt={evidence.file_name} className="h-full w-full object-cover" />
+            isVideo(evidence) ? (
+              <video src={evidence.storage_path} poster={evidence.poster || undefined} muted playsInline className="h-full w-full object-cover" />
+            ) : (
+              <img src={evidence.storage_path} alt={evidence.file_name} className="h-full w-full object-cover" />
+            )
           ) : (
             <div className="px-3 text-center text-xs uppercase tracking-[0.2em] text-slate-500">
               {evidence.content_type || evidence.file_type || "evidence"}

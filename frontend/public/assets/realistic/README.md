@@ -15,3 +15,10 @@ Raster files in active use:
 - industrial-checkpoint-1.jpg, industrial-checkpoint-2.jpg
 
 Legacy SVG files are retained temporarily but no longer preferred in the timeline mappings.
+
+Optional video clips (place here to enable video-based evidence replay):
+- truck-arrival-1.mp4 (arrival clip, poster truck-arrival-1.jpg)
+- weighbridge-1.mp4 (weighbridge clip, poster weighbridge-1.jpg)
+- unloading-1.mp4 (unload clip, poster unloading-1.jpg)
+
+Add these MP4s to fully enable synchronized forensic playback and richer evidence authenticity.

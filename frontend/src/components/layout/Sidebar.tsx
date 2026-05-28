@@ -9,8 +9,8 @@ import { NavLink } from "react-router-dom";
 
 const navItems = [
   { to: "/app/command-center", label: "Command Center", icon: LayoutDashboard },
-  { to: "/app/timeline", label: "Verification Timeline", icon: Radar },
-  { to: "/app/replay", label: "Incident Replay", icon: Shield }
+  { to: "/app/timeline", label: "Delivery Ledger", icon: Radar },
+  { to: "/app/replay", label: "Incident Investigation", icon: Shield }
 ];
 
 const Sidebar = () => {
@@ -23,7 +23,7 @@ const Sidebar = () => {
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-[0.26em] text-slate-500">InfraSentinel</p>
-            <p className="text-sm font-semibold text-white font-display">Verification Command Center</p>
+            <p className="text-sm font-semibold text-white font-display">Operational Intelligence Platform</p>
           </div>
         </div>
         <div className="mt-4 flex items-center justify-between gap-2 text-xs text-slate-400">

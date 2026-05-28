@@ -43,11 +43,15 @@ export function useOpsStream(onEvent: (e: any) => void, opts?: { enabled?: boole
     const rand = randRef.current;
 
     function makeArrival() {
-      const plate = `TN-${Math.floor(rand()*90)+10}-${String.fromCharCode(65 + Math.floor(rand()*26))}${Math.floor(rand()*90)+10}-${Math.floor(rand()*9000)+1000}`;
-      const supplierPool = ["Acme Aggregates", "Titan Steel", "Gita Crushers", "Narayana Sand Co.", "Karan Bricks"];
+      // More realistic seeded Indian truck plate pattern and richer metadata
+      const alpha = String.fromCharCode(65 + Math.floor(rand()*26));
+      const plate = `TN-${Math.floor(rand()*90)+10}-${alpha}${Math.floor(rand()*90)+10}-${Math.floor(rand()*9000)+1000}`;
+      const supplierPool = ["Acme Aggregates", "Titan Steel", "Gita Crushers", "Narayana Sand Co.", "Karan Bricks", "Suresh Logistics", "Vijay Transport"];
       const materials = ["Cement","Aggregate","Steel","Sand","Fly Ash","Bitumen","Bricks"];
       const supplier = supplierPool[Math.floor(rand()*supplierPool.length)];
       const material = materials[Math.floor(rand()*materials.length)];
+      const projects = ["Eastern Corridor", "Metro Segment-4", "Delta Port Road", "Ring Expressway"];
+      const sites = ["Plant South","Gate Yard A","Site 01","Site 02"];
 
       return {
         type: "arrival",
@@ -56,9 +60,9 @@ export function useOpsStream(onEvent: (e: any) => void, opts?: { enabled?: boole
         vehicle_plate: plate,
         supplier,
         material,
-        project: "Project Alpha",
-        site: "Site 01",
-        invoice_id: `INV-${Math.floor(rand()*90000)+10000}`,
+        project: projects[Math.floor(rand()*projects.length)],
+        site: sites[Math.floor(rand()*sites.length)],
+        invoice_id: `INV-${new Date().getFullYear().toString().slice(-2)}-${Math.floor(rand()*90000)+10000}`,
         expected_quantity: Number((8 + rand()*28).toFixed(2)),
       };
     }
@@ -67,9 +71,16 @@ export function useOpsStream(onEvent: (e: any) => void, opts?: { enabled?: boole
       const base = makeArrival();
       onEvent(base);
       // schedule follow ups: anpr, weighbridge, invoice, verification sequence
+      // Send anpr (image), optionally a short mp4 for arrival (if available), weighbridge (image or short mp4), and invoice
       setTimeout(() => onEvent({ ...base, type: "anpr", anpr_confidence: Number((0.85 + rand()*0.15).toFixed(2)), storage_path: "/assets/realistic/anpr-1.jpg" }), 600 + Math.floor(rand()*900));
+      // arrival video (optional - ensure mp4 exists in public/assets/realistic for real evidence)
+      setTimeout(() => onEvent({ ...base, type: "arrival_video", storage_path: "/assets/realistic/truck-arrival-1.mp4", poster: "/assets/realistic/truck-arrival-1.jpg" }), 900 + Math.floor(rand()*800));
       setTimeout(() => onEvent({ ...base, type: "weighbridge", gross: Number((20 + rand()*20).toFixed(2)), tare: Number((1 + rand()*3).toFixed(2)), storage_path: "/assets/realistic/weighbridge-1.jpg" }), 1400 + Math.floor(rand()*1400));
+      // possible weighbridge clip
+      setTimeout(() => onEvent({ ...base, type: "weighbridge_video", storage_path: "/assets/realistic/weighbridge-1.mp4", poster: "/assets/realistic/weighbridge-1.jpg" }), 1600 + Math.floor(rand()*1200));
       setTimeout(() => onEvent({ ...base, type: "invoice_uploaded", invoice_id: base.invoice_id, storage_path: "/assets/realistic/invoice-1.png", ocr_confidence: Number((0.75 + rand()*0.25).toFixed(2)) }), 2400 + Math.floor(rand()*2000));
+      // unload clip (optional)
+      setTimeout(() => onEvent({ ...base, type: "unload_video", storage_path: "/assets/realistic/unloading-1.mp4", poster: "/assets/realistic/unloading-1.jpg" }), 3400 + Math.floor(rand()*1200));
 
       // verification steps sequence
       const steps = ["detected","processing","invoice_matched","weighbridge_pending","verified"].slice(0, 3 + Math.floor(rand()*3));

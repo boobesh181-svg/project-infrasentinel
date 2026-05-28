@@ -26,9 +26,12 @@ const sampleImage = (type: string, plate = "TN-01-AB1234") => {
   const map: Record<string, string[]> = {
     anpr: ["/assets/realistic/anpr-1.jpg", "/assets/realistic/anpr-2.jpg"],
     weighbridge: ["/assets/realistic/weighbridge-1.jpg", "/assets/realistic/weighbridge-2.jpg"],
+    weighbridgeVideo: ["/assets/realistic/weighbridge-1.mp4"],
     invoice: ["/assets/realistic/invoice-1.png", "/assets/realistic/invoice-2.png"],
     truck: ["/assets/realistic/truck-arrival-1.jpg", "/assets/realistic/truck-arrival-2.jpg", "/assets/realistic/truck-arrival-3.jpg"],
+    truckVideo: ["/assets/realistic/truck-arrival-1.mp4"],
     unload: ["/assets/realistic/unloading-1.jpg", "/assets/realistic/unloading-2.jpg"],
+    unloadVideo: ["/assets/realistic/unloading-1.mp4"],
     industrial: ["/assets/realistic/industrial-checkpoint-1.jpg", "/assets/realistic/industrial-checkpoint-2.jpg"]
   };
   const list = map[type] || map.truck;
@@ -155,6 +158,7 @@ const ForensicTimeline = ({ delivery }: { delivery?: Delivery | null }) => {
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(delivery || null);
   const [selectedEvidenceId, setSelectedEvidenceId] = useState<string | null>(null);
+  const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const [autoPlay, setAutoPlay] = useState(true);
   const [verificationIndex, setVerificationIndex] = useState<number | null>(null);
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
@@ -273,6 +277,25 @@ const ForensicTimeline = ({ delivery }: { delivery?: Delivery | null }) => {
           upsertQueue({ id: d.id, plate: d.vehicle_plate, supplier: d.supplier, state: "weighbridge_pending", updatedAt: new Date().toISOString() });
         }
 
+        // handle optional video evidence events
+        if (evt.type === "arrival_video") {
+          d.evidence.push({ id: `${d.id}-arrival-v`, file_name: `${d.vehicle_plate}-arrival.mp4`, storage_path: evt.storage_path || sampleImage("truckVideo", d.vehicle_plate), poster: evt.poster || sampleImage("truck", d.vehicle_plate), content_type: "video/mp4", uploaded_at: evt.occurred_at || new Date().toISOString(), file_hash: Math.random().toString(36).slice(2, 12) });
+          setQueuePulseId(d.id);
+          upsertQueue({ id: d.id, plate: d.vehicle_plate, supplier: d.supplier, state: "arrival_video", updatedAt: new Date().toISOString() });
+        }
+
+        if (evt.type === "weighbridge_video") {
+          d.evidence.push({ id: `${d.id}-wb-v`, file_name: `${d.vehicle_plate}-weigh.mp4`, storage_path: evt.storage_path || sampleImage("weighbridgeVideo", d.vehicle_plate), poster: evt.poster || sampleImage("weighbridge", d.vehicle_plate), content_type: "video/mp4", uploaded_at: evt.occurred_at || new Date().toISOString(), file_hash: Math.random().toString(36).slice(2, 12) });
+          setQueuePulseId(d.id);
+          upsertQueue({ id: d.id, plate: d.vehicle_plate, supplier: d.supplier, state: "weighbridge_video", updatedAt: new Date().toISOString() });
+        }
+
+        if (evt.type === "unload_video") {
+          d.evidence.push({ id: `${d.id}-unload-v`, file_name: `${d.vehicle_plate}-unload.mp4`, storage_path: evt.storage_path || sampleImage("unloadVideo", d.vehicle_plate), poster: evt.poster || sampleImage("unload", d.vehicle_plate), content_type: "video/mp4", uploaded_at: evt.occurred_at || new Date().toISOString(), file_hash: Math.random().toString(36).slice(2, 12) });
+          setQueuePulseId(d.id);
+          upsertQueue({ id: d.id, plate: d.vehicle_plate, supplier: d.supplier, state: "unload_video", updatedAt: new Date().toISOString() });
+        }
+
         if (evt.type === "invoice_uploaded") {
           d.evidence.push({ id: `${d.id}-inv`, file_name: `${evt.invoice_id}.png`, storage_path: sampleImage("invoice", d.vehicle_plate), content_type: "image/png", uploaded_at: evt.occurred_at, file_hash: Math.random().toString(36).slice(2, 12), supplier_name: d.supplier, invoice_number: evt.invoice_id });
           d.invoice_upload_timestamp = evt.occurred_at;
@@ -351,6 +374,21 @@ const ForensicTimeline = ({ delivery }: { delivery?: Delivery | null }) => {
     setSelectedDelivery(d);
     setSelectedEvidenceId(d.evidence?.[0]?.id || null);
     setVerificationIndex(null);
+  };
+
+  const syncPlay = () => {
+    if (!selectedDelivery) return;
+    const vids = (selectedDelivery.evidence || []).filter((e: any) => String(e.content_type).startsWith("video/"));
+    // reset and play all video refs for synchronized forensic playback
+    vids.forEach((v: any) => {
+      const ref = videoRefs.current[v.id];
+      try {
+        if (ref) {
+          ref.currentTime = 0;
+          ref.play().catch(() => {});
+        }
+      } catch (e) {}
+    });
   };
 
   const openInvoice = (inv: any) => {
@@ -466,11 +504,18 @@ const ForensicTimeline = ({ delivery }: { delivery?: Delivery | null }) => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Evidence workspace</p>
-                <button onClick={() => setSelectedDelivery(null)} className="rounded border border-white/10 px-2 py-1 text-[11px] text-slate-300">Close</button>
+                <div className="flex gap-2">
+                  <button onClick={() => syncPlay()} className="rounded border border-white/10 px-2 py-1 text-[11px] text-cyan-200">Sync Play</button>
+                  <button onClick={() => setSelectedDelivery(null)} className="rounded border border-white/10 px-2 py-1 text-[11px] text-slate-300">Close</button>
+                </div>
               </div>
               <div className="overflow-hidden rounded-xl border border-white/10 bg-black/30 transition-all duration-300 hover:border-cyan-400/35 hover:shadow-[0_18px_45px_rgba(8,24,34,0.55)]">
                 {activeEvidence ? (
-                  <img src={activeEvidence.storage_path} alt={activeEvidence.file_name} className="h-[320px] w-full object-cover transition-transform duration-500 hover:scale-[1.015]" />
+                  String(activeEvidence.content_type || "").startsWith("video/") ? (
+                    <video ref={(el) => { if (el) videoRefs.current[activeEvidence.id] = el; }} src={activeEvidence.storage_path} poster={activeEvidence.poster || undefined} controls className="h-[320px] w-full object-cover transition-transform duration-500 hover:scale-[1.015]" />
+                  ) : (
+                    <img src={activeEvidence.storage_path} alt={activeEvidence.file_name} className="h-[320px] w-full object-cover transition-transform duration-500 hover:scale-[1.015]" />
+                  )
                 ) : (
                   <div className="flex h-[320px] items-center justify-center text-xs text-slate-500">No evidence selected</div>
                 )}
@@ -478,7 +523,11 @@ const ForensicTimeline = ({ delivery }: { delivery?: Delivery | null }) => {
               <div className="grid grid-cols-3 gap-1">
                 {(selectedDelivery.evidence || []).map((ev: any) => (
                   <button key={ev.id} onClick={() => setSelectedEvidenceId(ev.id)} className={`overflow-hidden rounded border transition-all duration-300 ${selectedEvidenceId === ev.id ? "border-cyan-400/60 ring-1 ring-cyan-400/35" : "border-white/10 hover:border-cyan-400/35"}`}>
-                    <img src={ev.storage_path} alt={ev.file_name} className={`h-16 w-full object-cover transition-transform duration-300 ${selectedEvidenceId === ev.id ? "scale-[1.03]" : "hover:scale-[1.02]"}`} />
+                    {String(ev.content_type || "").startsWith("video/") ? (
+                      <video ref={(el) => { if (el) videoRefs.current[ev.id] = el; }} src={ev.storage_path} poster={ev.poster || undefined} muted playsInline className={`h-16 w-full object-cover transition-transform duration-300 ${selectedEvidenceId === ev.id ? "scale-[1.03]" : "hover:scale-[1.02]"}`} />
+                    ) : (
+                      <img src={ev.storage_path} alt={ev.file_name} className={`h-16 w-full object-cover transition-transform duration-300 ${selectedEvidenceId === ev.id ? "scale-[1.03]" : "hover:scale-[1.02]"}`} />
+                    )}
                   </button>
                 ))}
               </div>

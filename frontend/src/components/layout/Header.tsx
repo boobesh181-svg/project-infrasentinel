@@ -10,7 +10,8 @@ const titleMap: Record<string, string> = {
   "/app/command-center/weighbridge": "Weighbridge Verification",
   "/app/command-center/invoices": "Invoice Intake",
   "/app/command-center": "Command Center",
-  "/app/replay": "Audit Replay"
+  "/app/timeline": "Delivery Ledger",
+  "/app/replay": "Incident Investigation"
 };
 
 const Header = () => {
@@ -35,7 +36,7 @@ const Header = () => {
             <span>latency nominal</span>
           </div>
           <h1 className="text-[25px] font-semibold tracking-[-0.02em] text-white font-display md:text-[30px]">{pageTitle}</h1>
-          <p className="text-sm text-slate-400">Infrastructure verification, evidence linkage, and incident replay in one surface.</p>
+          <p className="text-sm text-slate-400">Live operations, historical delivery records, and forensic analysis stay separated by surface.</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 md:flex">
