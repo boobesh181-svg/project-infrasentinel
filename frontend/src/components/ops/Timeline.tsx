@@ -355,7 +355,7 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
   return (
     <>
       <div className="space-y-6">
-      <section className="rounded-[28px] border border-cyan-400/10 bg-gradient-to-br from-slate-950/90 via-slate-950/80 to-cyan-950/30 p-6 shadow-[0_24px_80px_rgba(2,6,23,0.55)]">
+      <section className="border border-cyan-400/10 bg-slate-950/85 p-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Forensic replay</p>
@@ -371,7 +371,7 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
               { label: "Anomalies", value: anomalyCount },
               { label: "Operators", value: operatorCount }
             ].map((metric) => (
-              <div key={metric.label} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+              <div key={metric.label} className="border border-white/10 bg-white/4 px-3 py-2">
                 <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{metric.label}</p>
                 <p className="mt-2 text-2xl font-semibold text-white">{metric.value}</p>
               </div>
@@ -380,7 +380,7 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
         </div>
 
         <div className="mt-6 grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="rounded-[26px] border border-cyan-400/10 bg-gradient-to-br from-slate-950/80 via-slate-950/70 to-slate-900/60 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.45)]">
+          <div className="border border-cyan-400/10 bg-slate-950/75 p-3">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Primary incident</p>
@@ -391,7 +391,7 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
             </div>
 
             <div className="mt-4 grid gap-4 md:grid-cols-[0.6fr_0.4fr]">
-              <div className="overflow-hidden rounded-[22px] border border-cyan-400/10 bg-slate-900/70">
+              <div className="overflow-hidden border border-cyan-400/10 bg-slate-900/70">
                 {imageEvidence?.storage_path ? (
                   <img src={imageEvidence.storage_path} alt="Truck evidence" className="h-[220px] w-full object-cover" />
                 ) : (
@@ -401,13 +401,13 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
                 )}
               </div>
               <div className="space-y-3">
-                <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-3">
+                <div className="border border-white/10 bg-slate-950/70 p-3">
                   <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">AI confidence</p>
                   <p className="mt-2 text-lg font-semibold text-white">
                     {delivery?.confidence != null ? Number(delivery.confidence).toFixed(2) : "—"}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-3">
+                <div className="border border-white/10 bg-slate-950/70 p-3">
                   <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Invoice reference</p>
                   <div className="mt-2 flex items-center justify-between gap-2">
                     <span className="text-sm text-white">{invoiceLink?.invoice_id ? String(invoiceLink.invoice_id).slice(0, 8) : "—"}</span>
@@ -417,7 +417,7 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
                     </Link>
                   </div>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-3">
+                <div className="border border-white/10 bg-slate-950/70 p-3">
                   <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Weighbridge</p>
                   <p className="mt-2 text-sm text-white">
                     {weighbridge?.net_weight != null
@@ -429,12 +429,12 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
             </div>
           </div>
 
-          <div className="rounded-[26px] border border-rose-400/20 bg-gradient-to-br from-slate-950/80 via-slate-950/70 to-rose-950/40 p-4">
+          <div className="border border-rose-400/20 bg-slate-950/75 p-3">
             <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Anomaly overlay</p>
             <div className="mt-3 space-y-3">
               {anomalies.length ? (
                 anomalies.map((flag: string) => (
-                  <div key={flag} className="flex items-center justify-between rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+                  <div key={flag} className="flex items-center justify-between border border-rose-400/20 bg-rose-500/10 px-3 py-2 text-sm text-rose-100">
                     <div className="flex items-center gap-2">
                       <ShieldAlert className="h-4 w-4" />
                       {flag.replace(/_/g, " ")}
@@ -595,8 +595,8 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
               <article
                 key={event.id}
                 ref={(el) => (itemRefs.current[index] = el)}
-                className={`relative rounded-[26px] border p-5 shadow-[0_18px_60px_rgba(2,6,23,0.38)] transition ${
-                  index === currentIndex ? 'border-cyan-400/50 bg-gradient-to-br from-slate-900/70 to-cyan-950/10 scale-[1.01]' : 'border-white/10 bg-gradient-to-br from-slate-950/80 via-slate-950/70 to-slate-900/60'
+                className={`relative border p-4 transition ${
+                  index === currentIndex ? 'border-cyan-400/50 bg-slate-900/70' : 'border-white/10 bg-slate-950/75'
                 }`}
               >
                 <span className="absolute left-4 top-6 h-3 w-3 rounded-full bg-cyan-300" />
@@ -611,7 +611,7 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
                           {event.details.find((detail) => detail.label === "State")?.value}
                         </span>
                       ) : null}
-                      <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs uppercase tracking-[0.18em] text-slate-300">
+                      <span className="border border-white/10 bg-white/4 px-2.5 py-1 text-xs uppercase tracking-[0.18em] text-slate-300">
                         {format(new Date(event.time), "yyyy-MM-dd HH:mm:ss")}
                       </span>
                     </div>
@@ -627,7 +627,7 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
 
                 <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                   {event.details.map((detail) => (
-                    <div key={`${event.id}-${detail.label}`} className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <div key={`${event.id}-${detail.label}`} className="border border-white/10 bg-white/4 p-2.5">
                       <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{detail.label}</p>
                       <p className="mt-2 break-words text-sm text-slate-100">{detail.value}</p>
                     </div>
@@ -635,20 +635,20 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-white/10 pt-4 text-xs text-slate-400">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                  <span className="inline-flex items-center gap-2 border border-white/10 bg-white/4 px-3 py-1">
                     <Clock3 className="h-3.5 w-3.5 text-cyan-300" />
                     {format(new Date(event.time), "HH:mm:ss")}
                   </span>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                  <span className="inline-flex items-center gap-2 border border-white/10 bg-white/4 px-3 py-1">
                     <Globe2 className="h-3.5 w-3.5 text-cyan-300" />
                     {event.gps || "GPS unavailable"}
                   </span>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                  <span className="inline-flex items-center gap-2 border border-white/10 bg-white/4 px-3 py-1">
                     <Hash className="h-3.5 w-3.5 text-cyan-300" />
                     {event.hash || "chain marker unavailable"}
                   </span>
                   {event.actor ? (
-                    <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                    <span className="inline-flex items-center gap-2 border border-white/10 bg-white/4 px-3 py-1">
                       <UserRound className="h-3.5 w-3.5 text-cyan-300" />
                       {event.actor}
                     </span>
@@ -656,7 +656,7 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
                 </div>
 
                 {event.reasoning ? (
-                  <div className="mt-4 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-4">
+                  <div className="mt-4 border border-cyan-400/20 bg-cyan-500/10 p-3">
                     <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-cyan-100">
                       <Sparkles className="h-3.5 w-3.5" />
                       AI reasoning snippet
@@ -680,7 +680,7 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
                 ) : null}
 
                 {event.kind === "anomaly" ? (
-                  <div className="mt-4 rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-sm text-rose-100">
+                  <div className="mt-4 border border-rose-400/20 bg-rose-500/10 p-3 text-sm text-rose-100">
                     <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-rose-100">
                       <AlertTriangle className="h-4 w-4" />
                       anomaly overlay
@@ -698,19 +698,19 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
               </article>
             ))
           ) : (
-            <div className="rounded-[26px] border border-dashed border-white/10 bg-slate-950/60 p-8 text-sm text-slate-400">
+            <div className="border border-dashed border-white/10 bg-slate-950/60 p-6 text-sm text-slate-400">
               No replay events match the selected filter.
             </div>
           )}
         </section>
 
         <aside className="space-y-6">
-          <section className="rounded-[26px] border border-white/10 bg-slate-950/70 p-5">
+          <section className="border border-white/10 bg-slate-950/70 p-4">
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-slate-400">
               <FileText className="h-4 w-4 text-cyan-300" />
               evidence preview
             </div>
-            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3">
+            <div className="mt-4 border border-white/10 bg-white/4 p-3">
               {previewEvidence ? (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-2 text-xs uppercase tracking-[0.2em] text-slate-400">
@@ -742,7 +742,7 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
               )}
             </div>
           </section>
-          <section className="rounded-[26px] border border-white/10 bg-slate-950/70 p-5">
+          <section className="border border-white/10 bg-slate-950/70 p-4">
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-slate-400">
               <Radar className="h-4 w-4 text-cyan-300" />
               confidence progression
@@ -776,7 +776,7 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
             </div>
           </section>
 
-          <section className="rounded-[26px] border border-white/10 bg-slate-950/70 p-5">
+          <section className="border border-white/10 bg-slate-950/70 p-4">
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-slate-400">
               <Waves className="h-4 w-4 text-cyan-300" />
               forensic dossier
@@ -791,7 +791,7 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
             </div>
           </section>
 
-          <section className="rounded-[26px] border border-white/10 bg-slate-950/70 p-5">
+          <section className="border border-white/10 bg-slate-950/70 p-4">
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-slate-400">
               <ArrowDownRight className="h-4 w-4 text-cyan-300" />
               chain-of-custody
@@ -838,7 +838,7 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
             </div>
           </section>
 
-          <section className="rounded-[26px] border border-white/10 bg-slate-950/70 p-5">
+          <section className="border border-white/10 bg-slate-950/70 p-4">
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-slate-400">
               <UserRound className="h-4 w-4 text-cyan-300" />
               operator notes
@@ -846,7 +846,7 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
             <div className="mt-4 space-y-3 text-sm text-slate-300">
               {operatorNotes.length ? (
                 operatorNotes.map((note: any, index: number) => (
-                  <div key={note.id || index} className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <div key={note.id || index} className="border border-white/10 bg-white/4 p-3">
                     <div className="flex items-center justify-between gap-2">
                       <Badge label={(note.analyzer || "operator").toUpperCase()} />
                       <span className="text-xs text-slate-500">{note.created_at ? format(new Date(note.created_at), "HH:mm:ss") : "—"}</span>
@@ -855,14 +855,14 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
                   </div>
                 ))
               ) : (
-                <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-4 text-sm text-slate-400">
+                <div className="border border-dashed border-white/10 bg-white/4 p-3 text-sm text-slate-400">
                   No operator notes recorded yet.
                 </div>
               )}
             </div>
           </section>
 
-          <section className="rounded-[26px] border border-white/10 bg-slate-950/70 p-5">
+          <section className="border border-white/10 bg-slate-950/70 p-4">
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-slate-400">
               <ShieldAlert className="h-4 w-4 text-cyan-300" />
               replay actions
@@ -883,7 +883,7 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
             </div>
           </section>
 
-          <section className="rounded-[26px] border border-white/10 bg-slate-950/70 p-5">
+          <section className="border border-white/10 bg-slate-950/70 p-4">
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-slate-400">
               <Hash className="h-4 w-4 text-cyan-300" />
               export-ready audit structure
@@ -902,7 +902,7 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
         role="presentation"
       >
         <div
-          className="w-full max-w-4xl rounded-[26px] border border-white/10 bg-slate-950/90 p-4 shadow-[0_24px_80px_rgba(2,6,23,0.55)]"
+          className="w-full max-w-4xl border border-white/10 bg-slate-950/90 p-4"
           onClick={(event) => event.stopPropagation()}
           role="presentation"
         >
@@ -915,14 +915,14 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
               <button
                 type="button"
                 onClick={() => onOpenEvidence(lightboxEvidence)}
-                className="rounded-full border border-cyan-400/30 bg-cyan-500/15 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-cyan-100"
+                className="border border-cyan-400/30 bg-cyan-500/15 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-cyan-100"
               >
                 open full
               </button>
               <button
                 type="button"
                 onClick={() => setLightboxEvidence(null)}
-                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-slate-300"
+                className="border border-white/10 bg-white/4 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-slate-300"
               >
                 close
               </button>
@@ -930,16 +930,16 @@ const Timeline = ({ delivery, weighbridge, onOpenEvidence, onAction, isSubmittin
           </div>
           <div className="mt-4">
             {lightboxImage ? (
-              <img src={lightboxImage} alt="Evidence lightbox" className="max-h-[70vh] w-full rounded-2xl object-contain" />
+              <img src={lightboxImage} alt="Evidence lightbox" className="max-h-[70vh] w-full object-contain" />
             ) : (
-              <div className="rounded-2xl border border-dashed border-white/10 bg-slate-950/60 p-6 text-sm text-slate-400">
+              <div className="border border-dashed border-white/10 bg-slate-950/60 p-6 text-sm text-slate-400">
                 No image preview available for this artifact.
               </div>
             )}
           </div>
           <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-400">
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Hash: {lightboxEvidence.file_hash || "—"}</span>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Type: {lightboxEvidence.content_type || lightboxEvidence.file_type || "—"}</span>
+            <span className="border border-white/10 bg-white/4 px-3 py-1">Hash: {lightboxEvidence.file_hash || "—"}</span>
+            <span className="border border-white/10 bg-white/4 px-3 py-1">Type: {lightboxEvidence.content_type || lightboxEvidence.file_type || "—"}</span>
           </div>
         </div>
       </div>

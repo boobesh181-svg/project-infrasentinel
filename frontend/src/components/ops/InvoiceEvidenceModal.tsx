@@ -18,10 +18,7 @@ const InvoiceEvidenceModal = ({ open, invoice, previewUrl, onClose }: Props) => 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 px-4 py-6 backdrop-blur-md" onClick={onClose}>
-      <div
-        className="operational-panel w-full max-w-5xl overflow-hidden rounded-[30px] shadow-[0_30px_120px_rgba(2,6,23,0.75)]"
-        onClick={(event) => event.stopPropagation()}
-      >
+      <div className="operational-panel w-full max-w-5xl overflow-hidden" onClick={(event) => event.stopPropagation()}>
         <div className="border-b border-white/10 bg-white/5 px-6 py-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -47,7 +44,7 @@ const InvoiceEvidenceModal = ({ open, invoice, previewUrl, onClose }: Props) => 
 
         <div className="grid gap-0 lg:grid-cols-[1.4fr_0.6fr]">
           <div className="bg-slate-950 p-6">
-            <div className="overflow-hidden rounded-[24px] border border-white/10 bg-black/40 shadow-[0_20px_60px_rgba(2,6,23,0.35)]">
+            <div className="overflow-hidden border border-white/10 bg-black/40">
               {previewUrl && isImage ? (
                 <img src={previewUrl} alt={invoice.file_name} className="h-full w-full object-cover" />
               ) : previewUrl && isVideo ? (
@@ -66,15 +63,15 @@ const InvoiceEvidenceModal = ({ open, invoice, previewUrl, onClose }: Props) => 
           <div className="border-t border-white/10 bg-slate-950/80 p-6 lg:border-l lg:border-t-0">
             <p className="text-[10px] uppercase tracking-[0.26em] text-slate-500">Metadata</p>
             <div className="mt-4 space-y-3 text-sm text-slate-300">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+              <div className="border border-white/10 bg-white/4 p-3">
                 <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Uploaded</p>
                 <p className="mt-2 text-slate-100">{new Date(invoice.uploaded_at).toLocaleString()}</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+              <div className="border border-white/10 bg-white/4 p-3">
                 <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Supplier</p>
                 <p className="mt-2 text-slate-100">{invoice.supplier_name || "Unknown"}</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+              <div className="border border-white/10 bg-white/4 p-3">
                 <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Invoice ID</p>
                 <p className="mt-2 text-slate-100">{invoice.invoice_number || "—"}</p>
               </div>

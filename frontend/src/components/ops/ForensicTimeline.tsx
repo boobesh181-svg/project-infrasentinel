@@ -59,12 +59,12 @@ const makeDelivery = (date: Date, idx: number): Delivery => {
   const operatorAt = addMinutes(unloadAt, random(5, 15));
 
   const evidence = [
-    { id: `ev-${plate}-arrival`, file_name: `${plate}-arrival.jpg`, storage_path: sampleImage("truck", plate), content_type: "image/jpeg", uploaded_at: date.toISOString(), file_hash: Math.random().toString(36).slice(2, 12) },
-    { id: `ev-${plate}-anpr`, file_name: `${plate}-anpr.jpg`, storage_path: sampleImage("anpr", plate), content_type: "image/jpeg", uploaded_at: gateEntry.toISOString(), file_hash: Math.random().toString(36).slice(2, 12) },
-    { id: `ev-${plate}-invoice`, file_name: `${invoiceId}.png`, storage_path: sampleImage("invoice", plate), content_type: "image/png", uploaded_at: gateEntry.toISOString(), file_hash: Math.random().toString(36).slice(2, 12), supplier_name: supplier, invoice_number: invoiceId },
-    { id: `ev-${plate}-weigh`, file_name: `${plate}-weighbridge.jpg`, storage_path: sampleImage("weighbridge", plate), content_type: "image/jpeg", uploaded_at: addMinutes(gateEntry, 5).toISOString(), file_hash: Math.random().toString(36).slice(2, 12) },
-    { id: `ev-${plate}-unload`, file_name: `${plate}-unload.jpg`, storage_path: sampleImage("unload", plate), content_type: "image/jpeg", uploaded_at: unloadAt.toISOString(), file_hash: Math.random().toString(36).slice(2, 12) },
-    { id: `ev-${plate}-checkpoint`, file_name: `${plate}-checkpoint.jpg`, storage_path: sampleImage("industrial", plate), content_type: "image/jpeg", uploaded_at: operatorAt.toISOString(), file_hash: Math.random().toString(36).slice(2, 12) }
+    { id: `ev-${plate}-arrival`, file_name: `${plate}-arrival.jpg`, storage_path: sampleImage("truck", plate), content_type: "image/jpeg", uploaded_at: date.toISOString(), file_hash: Math.random().toString(36).slice(2, 12), camera_id: 'CAM-GATE-01', site_name: site },
+    { id: `ev-${plate}-anpr`, file_name: `${plate}-anpr.jpg`, storage_path: sampleImage("anpr", plate), content_type: "image/jpeg", uploaded_at: gateEntry.toISOString(), file_hash: Math.random().toString(36).slice(2, 12), camera_id: 'ANPR-01', site_name: site },
+    { id: `ev-${plate}-invoice`, file_name: `${invoiceId}.png`, storage_path: sampleImage("invoice", plate), content_type: "image/png", uploaded_at: gateEntry.toISOString(), file_hash: Math.random().toString(36).slice(2, 12), supplier_name: supplier, invoice_number: invoiceId, camera_id: 'UPLOAD-SVC-01', site_name: site },
+    { id: `ev-${plate}-weigh`, file_name: `${plate}-weighbridge.jpg`, storage_path: sampleImage("weighbridge", plate), content_type: "image/jpeg", uploaded_at: addMinutes(gateEntry, 5).toISOString(), file_hash: Math.random().toString(36).slice(2, 12), camera_id: 'WB-01', site_name: site },
+    { id: `ev-${plate}-unload`, file_name: `${plate}-unload.jpg`, storage_path: sampleImage("unload", plate), content_type: "image/jpeg", uploaded_at: unloadAt.toISOString(), file_hash: Math.random().toString(36).slice(2, 12), camera_id: 'CAM-UNLOAD-01', site_name: site },
+    { id: `ev-${plate}-checkpoint`, file_name: `${plate}-checkpoint.jpg`, storage_path: sampleImage("industrial", plate), content_type: "image/jpeg", uploaded_at: operatorAt.toISOString(), file_hash: Math.random().toString(36).slice(2, 12), camera_id: 'CAM-OP-01', site_name: site }
   ];
 
   return {
@@ -153,7 +153,15 @@ const stageLabels = [
   "Audit Stored"
 ];
 
-const ForensicTimeline = ({ delivery }: { delivery?: Delivery | null }) => {
+type ForensicTimelineProps = {
+  delivery?: Delivery | null;
+  weighbridge?: any | null;
+  onOpenEvidence?: (evidence: any) => void;
+  onAction?: (action: string) => void;
+  isSubmitting?: boolean;
+};
+
+const ForensicTimeline = ({ delivery }: ForensicTimelineProps) => {
   const [days, setDays] = useState(() => buildDays(6));
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(delivery || null);

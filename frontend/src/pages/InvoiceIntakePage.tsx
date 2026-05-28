@@ -136,7 +136,7 @@ const InvoiceIntakePage = () => {
   return (
     <OperationsLayout>
       <div className="space-y-6">
-        <section className="operational-panel rounded-[30px] px-6 py-6 md:px-7 md:py-7">
+        <section className="operational-panel px-6 py-6 md:px-7 md:py-7">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Command Center / Invoice Intake</p>

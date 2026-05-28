@@ -73,7 +73,7 @@ const SitePage = () => {
   return (
     <OperationsLayout>
       <div className="space-y-6">
-        <motion.section variants={panelReveal} initial="hidden" animate="visible" className="operational-panel rounded-[30px] px-6 py-6 md:px-7 md:py-7">
+        <motion.section variants={panelReveal} initial="hidden" animate="visible" className="operational-panel px-5 py-5 md:px-6 md:py-6">
           <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
             <div className="space-y-4">
               <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Command Center / Site Lane</p>
@@ -97,7 +97,7 @@ const SitePage = () => {
                 { label: "Live signals", value: liveCount },
                 { label: "Active state", value: activeState }
               ].map((item) => (
-                <motion.div key={item.label} variants={staggerItem} className="rounded-[22px] border border-white/10 bg-white/5 p-4">
+                <motion.div key={item.label} variants={staggerItem} className="border border-white/10 bg-white/4 p-3">
                   <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">{item.label}</p>
                   <p className="mt-3 text-2xl font-semibold text-white">{item.value}</p>
                 </motion.div>
@@ -148,7 +148,7 @@ const SitePage = () => {
                   </div>
                 ) : (
                   signalRows.map((item) => (
-                    <div key={item.id} className="rounded-[24px] border border-white/10 bg-white/5 p-4 transition hover:border-cyan-400/25 hover:bg-cyan-500/10">
+                    <div key={item.id} className="border border-white/10 bg-white/4 p-3 transition hover:border-cyan-400/25 hover:bg-cyan-500/8">
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">

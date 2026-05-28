@@ -1,0 +1,462 @@
+[
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-001.png",
+    "name": "invoice-001.png",
+    "hash": "7ab510f6cb0fe393970b10e625f770dfb80d83d58609eae0d24522c1bb7f388b",
+    "supplier": "Karan Bricks & Co",
+    "invoice_id": "INV-26-33144-1",
+    "date": "2026-04-28T13:44:16.924491",
+    "preset": "mobile_lowlight",
+    "ocr": {
+      "supplier": {
+        "text": "Karan Bricks & Co",
+        "confidence": 0.9
+      },
+      "invoice_id": {
+        "text": "INV-26-33144-1",
+        "confidence": 0.89
+      },
+      "quantity": {
+        "text": "19.14",
+        "confidence": 0.84
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-002.png",
+    "name": "invoice-002.png",
+    "hash": "7f9b779e1ec024d8444892b1cd853438afccddb93484300b0b07bfcf8d417243",
+    "supplier": "Gita Crushers",
+    "invoice_id": "INV-26-96420-2",
+    "date": "2026-05-01T08:02:19.139717",
+    "preset": "photocopy",
+    "ocr": {
+      "supplier": {
+        "text": "Gita Crushers",
+        "confidence": 0.96
+      },
+      "invoice_id": {
+        "text": "INV-26-96420-2",
+        "confidence": 0.86
+      },
+      "quantity": {
+        "text": "24.71",
+        "confidence": 0.9
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-003.png",
+    "name": "invoice-003.png",
+    "hash": "6d53b17a9b5829e74f10aa319e259506b6d38f98c79f816b3c3591db6860143d",
+    "supplier": "Narayana Sand Co.",
+    "invoice_id": "INV-26-35759-3",
+    "date": "2026-05-23T10:08:20.256932",
+    "preset": "clean_scan",
+    "ocr": {
+      "supplier": {
+        "text": "Narayana Sand Co.",
+        "confidence": 0.87
+      },
+      "invoice_id": {
+        "text": "INV-26-35759-3",
+        "confidence": 0.92
+      },
+      "quantity": {
+        "text": "14.15",
+        "confidence": 0.94
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-004.png",
+    "name": "invoice-004.png",
+    "hash": "d95a9bef012737bbc61ca4fe600fa790d46e06145f482d157b2b9236cd7abd54",
+    "supplier": "Delta Materials",
+    "invoice_id": "INV-26-38237-4",
+    "date": "2026-05-25T03:04:21.186301",
+    "preset": "whatsapp",
+    "ocr": {
+      "supplier": {
+        "text": "Delta Materials",
+        "confidence": 0.89
+      },
+      "invoice_id": {
+        "text": "INV-26-38237-4",
+        "confidence": 0.85
+      },
+      "quantity": {
+        "text": "18.77",
+        "confidence": 0.78
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-005.png",
+    "name": "invoice-005.png",
+    "hash": "eed0c9ea82e0c3dbe2ac749fe3d2c0405f4d8a1b948ba4cb1825e8bb09c039c4",
+    "supplier": "Titan Steel Pvt Ltd",
+    "invoice_id": "INV-26-88993-5",
+    "date": "2026-04-28T14:09:22.120830",
+    "preset": "mobile_lowlight",
+    "ocr": {
+      "supplier": {
+        "text": "Titan Steel Pvt Ltd",
+        "confidence": 0.88
+      },
+      "invoice_id": {
+        "text": "INV-26-88993-5",
+        "confidence": 0.83
+      },
+      "quantity": {
+        "text": "21.94",
+        "confidence": 0.91
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-006.png",
+    "name": "invoice-006.png",
+    "hash": "afd117174f8c7e1b91268ee11b2dc0ef49296dddc54282c2896deb8751a10d76",
+    "supplier": "Gita Crushers",
+    "invoice_id": "INV-26-37333-6",
+    "date": "2026-04-29T04:20:23.507528",
+    "preset": "mobile_lowlight",
+    "ocr": {
+      "supplier": {
+        "text": "Gita Crushers",
+        "confidence": 0.98
+      },
+      "invoice_id": {
+        "text": "INV-26-37333-6",
+        "confidence": 0.94
+      },
+      "quantity": {
+        "text": "22.24",
+        "confidence": 0.83
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-007.png",
+    "name": "invoice-007.png",
+    "hash": "b5f7623cae820056f85d92006b98c8d98ff2ab1ac4222ff5adf2c98c9192654b",
+    "supplier": "Eastern Logistics",
+    "invoice_id": "INV-26-19710-7",
+    "date": "2026-05-04T02:28:24.748011",
+    "preset": "whatsapp",
+    "ocr": {
+      "supplier": {
+        "text": "Eastern Logistics",
+        "confidence": 0.89
+      },
+      "invoice_id": {
+        "text": "INV-26-19710-7",
+        "confidence": 0.86
+      },
+      "quantity": {
+        "text": "11.37",
+        "confidence": 0.75
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-008.png",
+    "name": "invoice-008.png",
+    "hash": "06365fbf8898f64c2fecd91aa8099c8f3619be3ce51e11b362fd705ea7b0121f",
+    "supplier": "Narayana Sand Co.",
+    "invoice_id": "INV-26-75934-8",
+    "date": "2026-05-24T07:14:25.720601",
+    "preset": "folded",
+    "ocr": {
+      "supplier": {
+        "text": "Narayana Sand Co.",
+        "confidence": 0.95
+      },
+      "invoice_id": {
+        "text": "INV-26-75934-8",
+        "confidence": 0.91
+      },
+      "quantity": {
+        "text": "16.05",
+        "confidence": 0.77
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-009.png",
+    "name": "invoice-009.png",
+    "hash": "9d5b271cbf092396a64bfe72f1d9a67e7231a1a0b010c4bcad76a1be45058f75",
+    "supplier": "Acme Aggregates",
+    "invoice_id": "INV-26-60036-9",
+    "date": "2026-05-13T10:20:26.695308",
+    "preset": "folded",
+    "ocr": {
+      "supplier": {
+        "text": "Acme Aggregates",
+        "confidence": 0.9
+      },
+      "invoice_id": {
+        "text": "INV-26-60036-9",
+        "confidence": 0.93
+      },
+      "quantity": {
+        "text": "26.03",
+        "confidence": 0.92
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-010.png",
+    "name": "invoice-010.png",
+    "hash": "d7c834f4c91e3261b49e3f16253ba87351ed0447802164a07261d031eacc591c",
+    "supplier": "Narayana Sand Co.",
+    "invoice_id": "INV-26-31639-10",
+    "date": "2026-05-09T13:28:27.692451",
+    "preset": "whatsapp",
+    "ocr": {
+      "supplier": {
+        "text": "Narayana Sand Co.",
+        "confidence": 0.91
+      },
+      "invoice_id": {
+        "text": "INV-26-31639-10",
+        "confidence": 0.84
+      },
+      "quantity": {
+        "text": "13.22",
+        "confidence": 0.77
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-011.png",
+    "name": "invoice-011.png",
+    "hash": "f70e426d2c1e5f4a952b5bb06abc7912db85bf68b9d17e17cd578fc3a494d384",
+    "supplier": "Acme Aggregates",
+    "invoice_id": "INV-26-86553-11",
+    "date": "2026-05-01T03:33:28.803259",
+    "preset": "photocopy",
+    "ocr": {
+      "supplier": {
+        "text": "Acme Aggregates",
+        "confidence": 0.96
+      },
+      "invoice_id": {
+        "text": "INV-26-86553-11",
+        "confidence": 0.92
+      },
+      "quantity": {
+        "text": "14.87",
+        "confidence": 0.94
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-012.png",
+    "name": "invoice-012.png",
+    "hash": "3dd759dcfd956635f7ec0524fdf2eb35dfc679903524ec19c0df49de2515656d",
+    "supplier": "Eastern Logistics",
+    "invoice_id": "INV-26-46439-12",
+    "date": "2026-05-01T03:32:29.654623",
+    "preset": "mobile_lowlight",
+    "ocr": {
+      "supplier": {
+        "text": "Eastern Logistics",
+        "confidence": 0.96
+      },
+      "invoice_id": {
+        "text": "INV-26-46439-12",
+        "confidence": 0.89
+      },
+      "quantity": {
+        "text": "14.2",
+        "confidence": 0.78
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-013.png",
+    "name": "invoice-013.png",
+    "hash": "641de8752eadc9d24f9b9563b8dcda84548723309cac5b8ecb8f441054128ffd",
+    "supplier": "Delta Materials",
+    "invoice_id": "INV-26-60355-13",
+    "date": "2026-05-26T11:15:30.876872",
+    "preset": "photocopy",
+    "ocr": {
+      "supplier": {
+        "text": "Delta Materials",
+        "confidence": 0.89
+      },
+      "invoice_id": {
+        "text": "INV-26-60355-13",
+        "confidence": 0.91
+      },
+      "quantity": {
+        "text": "23.59",
+        "confidence": 0.82
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-014.png",
+    "name": "invoice-014.png",
+    "hash": "8fa2fa84888334779ce4272acaec3eb727e0f961b2d4331aadc97b696e8c5cdd",
+    "supplier": "Eastern Logistics",
+    "invoice_id": "INV-26-81676-14",
+    "date": "2026-05-27T04:29:31.709679",
+    "preset": "mobile_daylight",
+    "ocr": {
+      "supplier": {
+        "text": "Eastern Logistics",
+        "confidence": 0.98
+      },
+      "invoice_id": {
+        "text": "INV-26-81676-14",
+        "confidence": 0.95
+      },
+      "quantity": {
+        "text": "12.16",
+        "confidence": 0.85
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-015.png",
+    "name": "invoice-015.png",
+    "hash": "fb977c1a95a8a389e0ef02aa0eb0dd7a7d209aa561b6330dfa3d60e96b1c86ae",
+    "supplier": "Titan Steel Pvt Ltd",
+    "invoice_id": "INV-26-92023-15",
+    "date": "2026-04-30T01:37:32.957328",
+    "preset": "photocopy",
+    "ocr": {
+      "supplier": {
+        "text": "Titan Steel Pvt Ltd",
+        "confidence": 0.9
+      },
+      "invoice_id": {
+        "text": "INV-26-92023-15",
+        "confidence": 0.93
+      },
+      "quantity": {
+        "text": "22.79",
+        "confidence": 0.97
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-016.png",
+    "name": "invoice-016.png",
+    "hash": "64ea124b92a9f8c5e13c8998758f44e31a07e8cf80fda2bee02d723baf7d35e0",
+    "supplier": "Gita Crushers",
+    "invoice_id": "INV-26-89889-16",
+    "date": "2026-05-01T09:39:33.706560",
+    "preset": "mobile_daylight",
+    "ocr": {
+      "supplier": {
+        "text": "Gita Crushers",
+        "confidence": 0.96
+      },
+      "invoice_id": {
+        "text": "INV-26-89889-16",
+        "confidence": 0.84
+      },
+      "quantity": {
+        "text": "18.33",
+        "confidence": 0.93
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-017.png",
+    "name": "invoice-017.png",
+    "hash": "5f284f9878b2f14ba4cba1e79c07cb3a7148710d0acdee2cc4b02dc3c590cd16",
+    "supplier": "Delta Materials",
+    "invoice_id": "INV-26-86516-17",
+    "date": "2026-05-08T02:53:35.212729",
+    "preset": "photocopy",
+    "ocr": {
+      "supplier": {
+        "text": "Delta Materials",
+        "confidence": 0.96
+      },
+      "invoice_id": {
+        "text": "INV-26-86516-17",
+        "confidence": 0.94
+      },
+      "quantity": {
+        "text": "10.87",
+        "confidence": 0.9
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-018.png",
+    "name": "invoice-018.png",
+    "hash": "d94baca1fb187dd5d1148f9405103c7e08f83563871b3f5cbb0196a3226b340f",
+    "supplier": "Narayana Sand Co.",
+    "invoice_id": "INV-26-24383-18",
+    "date": "2026-05-10T08:25:36.389912",
+    "preset": "mobile_lowlight",
+    "ocr": {
+      "supplier": {
+        "text": "Narayana Sand Co.",
+        "confidence": 0.88
+      },
+      "invoice_id": {
+        "text": "INV-26-24383-18",
+        "confidence": 0.85
+      },
+      "quantity": {
+        "text": "9.21",
+        "confidence": 0.76
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-019.png",
+    "name": "invoice-019.png",
+    "hash": "8c25b026166a03cf8699e7b5fdbaa3fe47478b95e5a648ea591a19ff43c626c9",
+    "supplier": "Titan Steel Pvt Ltd",
+    "invoice_id": "INV-26-16184-19",
+    "date": "2026-05-18T09:30:38.164751",
+    "preset": "folded",
+    "ocr": {
+      "supplier": {
+        "text": "Titan Steel Pvt Ltd",
+        "confidence": 0.88
+      },
+      "invoice_id": {
+        "text": "INV-26-16184-19",
+        "confidence": 0.9
+      },
+      "quantity": {
+        "text": "26.59",
+        "confidence": 0.79
+      }
+    }
+  },
+  {
+    "file": "C:\\Users\\boobesh\\.vscode\\infrasentinel-ai\\project-infrasentinel\\frontend\\public\\assets\\realistic\\generated_invoices\\invoice-020.png",
+    "name": "invoice-020.png",
+    "hash": "ba2b03922fbabfca02d54c81ccf82a88ff98b0cf67e193d231f350eafed73b85",
+    "supplier": "Delta Materials",
+    "invoice_id": "INV-26-44895-20",
+    "date": "2026-05-03T06:21:40.091829",
+    "preset": "whatsapp",
+    "ocr": {
+      "supplier": {
+        "text": "Delta Materials",
+        "confidence": 0.9
+      },
+      "invoice_id": {
+        "text": "INV-26-44895-20",
+        "confidence": 0.91
+      },
+      "quantity": {
+        "text": "23.66",
+        "confidence": 0.75
+      }
+    }
+  }
+]

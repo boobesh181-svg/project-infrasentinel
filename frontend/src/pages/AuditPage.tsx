@@ -55,7 +55,7 @@ const AuditPage = () => {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[28px] border border-white/10 bg-slate-950/60 p-6 shadow-[0_24px_80px_rgba(2,6,23,0.45)]">
+      <section className="border border-white/10 bg-slate-950/60 p-6">
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
             <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Audit Replay</p>
@@ -120,7 +120,7 @@ const AuditPage = () => {
             {logs.map((log, index) => (
               <div key={log.id} className="flex gap-4 rounded-2xl border border-white/10 bg-slate-900/60 p-4">
                 <div className="flex w-10 flex-col items-center pt-1">
-                  <div className="rounded-full border border-white/10 bg-white/5 p-2">{iconForAction(log.action)}</div>
+                  <div className="border border-white/10 bg-white/4 p-2">{iconForAction(log.action)}</div>
                   {index !== logs.length - 1 ? <div className="mt-2 h-full w-px bg-white/10" /> : null}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -136,7 +136,7 @@ const AuditPage = () => {
               </div>
             ))}
             {!isLoading && logs.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-6 text-sm text-slate-400">
+              <div className="border border-dashed border-white/10 bg-white/4 p-6 text-sm text-slate-400">
                 No events yet. Enter an entity ID and load timeline.
               </div>
             ) : null}
@@ -145,9 +145,9 @@ const AuditPage = () => {
 
         <Card className="border-white/10 bg-white/5" title="Replay Modes" subtitle="The replay stays deliberately narrow.">
           <div className="space-y-3 text-sm text-slate-300">
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3">Trace each operator transition in order.</div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3">Keep evidence visible while reviewing the chain of custody.</div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3">Use the timeline to reconstruct escalation and approval timing.</div>
+            <div className="border border-white/10 bg-white/4 p-3">Trace each operator transition in order.</div>
+            <div className="border border-white/10 bg-white/4 p-3">Keep evidence visible while reviewing the chain of custody.</div>
+            <div className="border border-white/10 bg-white/4 p-3">Use the timeline to reconstruct escalation and approval timing.</div>
           </div>
         </Card>
       </div>

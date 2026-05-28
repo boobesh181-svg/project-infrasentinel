@@ -35,7 +35,7 @@ const WeighbridgeVerificationPage = () => {
   return (
     <OperationsLayout>
       <div className="space-y-6">
-        <section className="operational-panel rounded-[32px] px-6 py-6 md:px-7 md:py-7">
+        <section className="operational-panel px-5 py-5 md:px-6 md:py-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Weighbridge</p>
@@ -49,21 +49,21 @@ const WeighbridgeVerificationPage = () => {
         </section>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-5">
+          <div className="border border-white/10 bg-slate-950/60 p-4">
             <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Gross Weight</p>
             <div className="mt-3 flex items-center gap-3">
               <Scale className="h-5 w-5 text-cyan-200" />
               <p className="text-2xl font-semibold text-white">{weigh?.gross_weight ?? "—"}</p>
             </div>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-5">
+          <div className="border border-white/10 bg-slate-950/60 p-4">
             <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Tare Weight</p>
             <div className="mt-3 flex items-center gap-3">
               <Truck className="h-5 w-5 text-cyan-200" />
               <p className="text-2xl font-semibold text-white">{weigh?.tare_weight ?? "—"}</p>
             </div>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-5">
+          <div className="border border-white/10 bg-slate-950/60 p-4">
             <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Net Weight</p>
             <div className="mt-3 flex items-center gap-3">
               <Sigma className="h-5 w-5 text-cyan-200" />
@@ -72,7 +72,7 @@ const WeighbridgeVerificationPage = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-5">
+        <div className="border border-white/10 bg-slate-950/60 p-4">
           <p className="text-sm text-slate-300">Invoice vs Weighbridge</p>
           <div className="mt-3 flex items-center justify-between">
             <div>

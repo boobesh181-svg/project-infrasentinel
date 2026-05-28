@@ -2,7 +2,7 @@ const AboutPage = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <section className="mx-auto w-full max-w-5xl px-6 py-16">
-        <div className="rounded-[28px] border border-white/10 bg-white/5 p-8 shadow-[0_20px_60px_rgba(2,6,23,0.35)]">
+        <div className="border border-white/10 bg-white/4 p-8">
           <p className="text-xs uppercase tracking-[0.3em] text-slate-400">About</p>
           <h1 className="mt-4 text-4xl font-semibold text-white md:text-5xl">
             Infrastructure verification software for operational environments.

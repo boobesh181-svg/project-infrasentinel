@@ -93,7 +93,7 @@ const OpsOverviewPage = () => {
           initial="hidden"
           animate="visible"
           transition={{ duration: 0.35, ease: "easeOut" }}
-          className="operational-panel rounded-[32px] px-6 py-6 md:px-7 md:py-7"
+          className="operational-panel px-5 py-5 md:px-6 md:py-6"
         >
           <div className="scanline" aria-hidden="true" />
           <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
@@ -131,7 +131,7 @@ const OpsOverviewPage = () => {
                 { label: "Queued", value: loading ? "…" : totalQueue, tone: "text-emerald-100" },
                 { label: "Signals", value: recentEvents.length, tone: "text-white" }
               ].map((item) => (
-                <motion.div key={item.label} variants={staggerItem} className="rounded-[24px] border border-white/10 bg-slate-950/70 p-4 shadow-[0_18px_40px_rgba(2,6,23,0.35)]">
+                <motion.div key={item.label} variants={staggerItem} className="border border-white/10 bg-slate-950/70 p-3">
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">{item.label}</p>
                     <span className="h-1.5 w-1.5 rounded-full bg-cyan-300/80" />
@@ -211,7 +211,7 @@ const OpsOverviewPage = () => {
 
           <motion.div variants={panelReveal} initial="hidden" animate="visible">
             <Card title="Operational Focus" subtitle="The current verification workflow remains centered and visible.">
-              <div className="rounded-[24px] border border-white/10 bg-slate-950/60 p-5">
+              <div className="border border-white/10 bg-slate-950/60 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">active state</p>

@@ -8,7 +8,7 @@ type CardProps = HTMLAttributes<HTMLDivElement> & {
 const Card = ({ title, subtitle, className = "", children, ...props }: CardProps) => {
   return (
     <section
-      className={`operational-panel rounded-[26px] p-6 text-slate-100 transition-all duration-200 ${className}`}
+      className={`operational-panel p-5 text-slate-100 ${className}`}
       {...props}
     >
       <div className="scanline" aria-hidden="true" />

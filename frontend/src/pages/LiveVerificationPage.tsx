@@ -53,7 +53,7 @@ const LiveVerificationPage = () => {
 
   return (
     <div className="space-y-6">
-      <section className="operational-panel rounded-[32px] px-6 py-6 md:px-7 md:py-7">
+      <section className="operational-panel px-5 py-5 md:px-6 md:py-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Live Verification Lane</p>
@@ -83,7 +83,7 @@ const LiveVerificationPage = () => {
       <div className="grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">
         <section className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
-            <div className="rounded-[28px] border border-white/10 bg-gradient-to-br from-slate-950/90 via-slate-950/80 to-slate-900/60 p-5 shadow-[0_24px_80px_rgba(2,6,23,0.55)]">
+            <div className="border border-white/10 bg-slate-950/80 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-2 text-cyan-200">
@@ -96,7 +96,7 @@ const LiveVerificationPage = () => {
                 </div>
                 <Badge label={delivery?.state || "STANDBY"} />
               </div>
-              <div className="mt-4 overflow-hidden rounded-[24px] border border-white/10 bg-slate-900/80">
+              <div className="mt-4 overflow-hidden border border-white/10 bg-slate-900/80">
                 {previewUrl ? (
                   <img src={previewUrl} alt="Live feed" className="h-[320px] w-full object-cover" />
                 ) : (
@@ -107,12 +107,12 @@ const LiveVerificationPage = () => {
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-white/10 bg-gradient-to-br from-slate-950/90 via-slate-950/75 to-slate-900/60 p-5">
+            <div className="border border-white/10 bg-slate-950/80 p-4">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Detected truck preview</p>
                 <Radar className="h-4 w-4 text-cyan-300" />
               </div>
-              <div className="mt-4 overflow-hidden rounded-[22px] border border-white/10 bg-slate-900/70">
+              <div className="mt-4 overflow-hidden border border-white/10 bg-slate-900/70">
                 {previewUrl ? (
                   <img src={previewUrl} alt="Detected truck" className="h-[220px] w-full object-cover" />
                 ) : (
@@ -120,13 +120,13 @@ const LiveVerificationPage = () => {
                 )}
               </div>
               <div className="mt-4 grid gap-3">
-                <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3">
+                <div className="border border-white/10 bg-slate-950/60 p-3">
                   <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Detection confidence</p>
                   <p className="mt-2 text-xl font-semibold text-white">
                     {detectionConfidence != null ? Number(detectionConfidence).toFixed(2) : "—"}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3">
+                <div className="border border-white/10 bg-slate-950/60 p-3">
                   <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Material type</p>
                   <p className="mt-2 text-white">{delivery?.detected_material_type || "Unassigned"}</p>
                 </div>
@@ -135,20 +135,20 @@ const LiveVerificationPage = () => {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="rounded-[28px] border border-white/10 bg-gradient-to-br from-slate-950/90 via-slate-950/80 to-slate-900/60 p-5">
+            <div className="border border-white/10 bg-slate-950/80 p-4">
               <p className="text-xs uppercase tracking-[0.2em] text-slate-500">ANPR extraction</p>
               <div className="mt-4 space-y-3">
-                <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                <div className="border border-white/10 bg-slate-950/60 p-3">
                   <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Plate</p>
                   <p className="mt-2 text-xl font-semibold text-white">
                     {delivery?.detected_plate || delivery?.vehicle_plate || "Unknown"}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                <div className="border border-white/10 bg-slate-950/60 p-3">
                   <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">ANPR confidence</p>
                   <p className="mt-2 text-white">{anprConfidence ? anprConfidence.toFixed(2) : "—"}</p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                <div className="border border-white/10 bg-slate-950/60 p-3">
                   <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Timestamp</p>
                   <p className="mt-2 text-white">
                     {delivery?.detected_at ? new Date(delivery.detected_at).toLocaleString() : "Pending"}
@@ -157,7 +157,7 @@ const LiveVerificationPage = () => {
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-white/10 bg-gradient-to-br from-slate-950/90 via-slate-950/80 to-slate-900/60 p-5">
+            <div className="border border-white/10 bg-slate-950/85 p-5">
               <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Invoice match status</p>
               <div className="mt-4 space-y-3">
                 {invoiceLinks.length ? (
@@ -171,12 +171,12 @@ const LiveVerificationPage = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-5 text-sm text-slate-400">
+                  <div className="border border-dashed border-white/10 bg-white/4 p-4 text-sm text-slate-400">
                     No invoice linked yet. Matching in progress.
                   </div>
                 )}
                 {topMatch ? (
-                  <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm text-emerald-100">
+                  <div className="border border-emerald-400/20 bg-emerald-500/10 p-3 text-sm text-emerald-100">
                     Strongest match: {topMatch.match_reason || "heuristic"}
                   </div>
                 ) : null}
@@ -186,7 +186,7 @@ const LiveVerificationPage = () => {
         </section>
 
         <aside className="space-y-6">
-          <div className="rounded-[28px] border border-white/10 bg-gradient-to-br from-slate-950/90 via-slate-950/80 to-slate-900/60 p-5">
+          <div className="border border-white/10 bg-slate-950/85 p-5">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Verification state</p>
             <div className="mt-4 space-y-3">
               <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3">
@@ -206,7 +206,7 @@ const LiveVerificationPage = () => {
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-white/10 bg-gradient-to-br from-slate-950/90 via-slate-950/80 to-slate-900/60 p-5">
+          <div className="border border-white/10 bg-slate-950/85 p-5">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Active anomaly alerts</p>
             <div className="mt-4 space-y-3">
               {suspiciousFlags.length ? (
@@ -228,7 +228,7 @@ const LiveVerificationPage = () => {
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-white/10 bg-gradient-to-br from-slate-950/90 via-slate-950/80 to-slate-900/60 p-5">
+          <div className="border border-white/10 bg-slate-950/85 p-5">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Operational timeline</p>
             <div className="mt-4 space-y-3">
               {timeline.length ? (

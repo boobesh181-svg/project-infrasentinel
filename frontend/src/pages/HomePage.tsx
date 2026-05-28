@@ -39,7 +39,7 @@ const HomePage = () => {
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-white/10 bg-slate-900/80 p-6 shadow-[0_20px_60px_rgba(2,6,23,0.45)]">
+          <div className="border border-white/10 bg-slate-900/80 p-6">
             <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Deployment posture</p>
             <div className="mt-4 space-y-3">
               {[
@@ -80,21 +80,21 @@ const HomePage = () => {
 
       <section className="mx-auto w-full max-w-6xl px-6 py-12">
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="rounded-[26px] border border-white/10 bg-white/5 p-6">
+          <div className="border border-white/10 bg-white/4 p-6">
             <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Operational summary</p>
             <h2 className="mt-3 text-2xl font-semibold text-white">The product is the workflow.</h2>
             <p className="mt-3 text-sm leading-6 text-slate-300">
               Every screen exists to support delivery verification, anomaly detection, evidence capture, and forensic replay.
             </p>
           </div>
-          <div className="rounded-[26px] border border-white/10 bg-white/5 p-6">
+          <div className="border border-white/10 bg-white/4 p-6">
             <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Operational trust</p>
             <h2 className="mt-3 text-2xl font-semibold text-white">Evidence stays visible.</h2>
             <p className="mt-3 text-sm leading-6 text-slate-300">
               Chain-of-custody markers, timestamps, confidence transitions, and operator actions are surfaced together.
             </p>
           </div>
-          <div className="rounded-[26px] border border-white/10 bg-white/5 p-6">
+          <div className="border border-white/10 bg-white/4 p-6">
             <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Deployment note</p>
             <h2 className="mt-3 text-2xl font-semibold text-white">Already shaped for operations.</h2>
             <p className="mt-3 text-sm leading-6 text-slate-300">

@@ -16,7 +16,7 @@ const navItems = [
 const Sidebar = () => {
   return (
     <aside className="hidden w-[312px] shrink-0 border-r border-white/10 bg-slate-950/85 px-5 py-6 lg:block">
-      <div className="mb-8 rounded-[26px] border border-white/10 bg-gradient-to-br from-slate-950/90 via-slate-950/70 to-slate-900/60 px-4 py-4 shadow-[0_20px_60px_rgba(2,6,23,0.5)]">
+      <div className="mb-8 border border-white/10 bg-slate-950/85 px-4 py-4">
         <div className="flex items-center gap-3">
           <div className="pulse-ring rounded-xl bg-cyan-400/15 p-2">
             <TestTube className="h-5 w-5 text-cyan-200" />
@@ -55,7 +55,7 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      <div className="mt-8 space-y-3 rounded-[24px] border border-white/10 bg-white/5 p-4">
+      <div className="mt-8 space-y-2 border border-white/10 bg-white/4 p-3">
         <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.22em] text-slate-500">
           <span>mission status</span>
           <span>steady</span>
