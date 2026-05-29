@@ -125,6 +125,7 @@ h3 {
 }
 
 .operational-glass {
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
   backdrop-filter: blur(20px) saturate(140%);
 }
 
@@ -133,6 +134,15 @@ h3 {
   overflow: hidden;
   border: 1px solid rgba(148, 163, 184, 0.1);
   background: linear-gradient(180deg, rgba(11, 18, 32, 0.88), rgba(15, 23, 42, 0.76));
+}
+
+.operational-panel > :not(.scanline) {
+  position: relative;
+  z-index: 1;
+}
+
+.operational-panel > :not(.scanline) + * {
+  margin-top: 0;
 }
 
 .operational-panel::before {
@@ -159,6 +169,25 @@ h3 {
   pointer-events: none;
   background: linear-gradient(180deg, transparent, rgba(34, 211, 238, 0.07), transparent);
   animation: scan-glide 9s linear infinite;
+}
+
+.enterprise-dense h1 {
+  font-size: clamp(1.65rem, 1.2rem + 1vw, 2.3rem);
+  line-height: 1.05;
+}
+
+.enterprise-dense h2 {
+  font-size: clamp(1.2rem, 1rem + 0.6vw, 1.55rem);
+  line-height: 1.1;
+}
+
+.enterprise-dense h3 {
+  font-size: clamp(1rem, 0.92rem + 0.35vw, 1.2rem);
+  line-height: 1.15;
+}
+
+.enterprise-dense p {
+  line-height: 1.45;
 }
 
 .pulse-ring {
@@ -257,6 +286,12 @@ h3 {
 
 .stage-flow {
   animation: stage-flow 0.45s ease-out;
+}
+
+@media (min-width: 1024px) {
+  .operational-panel {
+    border-color: rgba(148, 163, 184, 0.08);
+  }
 }
 
 .font-display {

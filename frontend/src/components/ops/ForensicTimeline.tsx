@@ -159,13 +159,17 @@ type ForensicTimelineProps = {
   onOpenEvidence?: (evidence: any) => void;
   onAction?: (action: string) => void;
   isSubmitting?: boolean;
+  selectedEvidenceId?: string | null;
+  onSelectEvidence?: (evidence: any) => void;
+  onContextChange?: (context: any) => void;
+  enableStream?: boolean;
 };
 
-const ForensicTimeline = ({ delivery }: ForensicTimelineProps) => {
+const ForensicTimeline = ({ delivery, selectedEvidenceId: selectedEvidenceIdProp, onSelectEvidence, onContextChange, enableStream = true }: ForensicTimelineProps) => {
   const [days, setDays] = useState(() => buildDays(6));
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(delivery || null);
-  const [selectedEvidenceId, setSelectedEvidenceId] = useState<string | null>(null);
+  const [selectedEvidenceId, setSelectedEvidenceId] = useState<string | null>(selectedEvidenceIdProp || null);
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const [autoPlay, setAutoPlay] = useState(true);
   const [verificationIndex, setVerificationIndex] = useState<number | null>(null);
@@ -357,9 +361,26 @@ const ForensicTimeline = ({ delivery }: ForensicTimelineProps) => {
     });
   }, [upsertQueue]);
 
-  useOpsStream(handleStreamEvent, { seed: 1337, enabled: true });
+  // Stream can be disabled for demo pages to avoid continuous state churn during validation.
+  useOpsStream(handleStreamEvent, { seed: 1337, enabled: Boolean(enableStream) });
 
   useEffect(() => {
+    // If a single delivery is provided via props (scenario), normalize and show it alone
+    if (delivery) {
+      const dt = new Date(delivery.delivery_timestamp || delivery.occurred_at || new Date().toISOString());
+      const normEvidence = (delivery.evidence || []).map((e: any) => {
+        const fileName = e.file_name || e.fileName || e.id;
+        const storage_path = e.storage_path || e.fileName || e.fileNameUrl || e.fileName || null;
+        const content_type = e.content_type || e.file_type || (String(fileName).toLowerCase().endsWith('.mp4') ? 'video/mp4' : 'image/jpeg');
+        return { ...e, file_name: fileName, storage_path, content_type, uploaded_at: e.uploaded_at || e.timestamp || e.timestamp };
+      });
+      const d = { ...delivery, evidence: normEvidence, occurred_at: dt.toISOString(), delivery_timestamp: dt.toISOString() };
+      setDays([{ date: dt, deliveries: [d] }]);
+      setExpandedDay(format(dt, "yyyy-MM-dd"));
+      setSelectedDelivery(d);
+      setSelectedEvidenceId(d.evidence?.[0]?.id || null);
+      return;
+    }
     if (!autoPlay || !expandedDay) return;
     playRef.current = window.setInterval(() => {
       setVerificationIndex((v) => (v == null ? 0 : v + 1));
@@ -369,10 +390,25 @@ const ForensicTimeline = ({ delivery }: ForensicTimelineProps) => {
     };
   }, [autoPlay, expandedDay]);
 
+  // Advance selected evidence as verificationIndex changes during replay
+  useEffect(() => {
+    if (verificationIndex == null || !selectedDelivery) return;
+    const evs = selectedDelivery.evidence || [];
+    if (!evs.length) return;
+    const idx = verificationIndex % evs.length;
+    const ev = evs[idx];
+    if (ev) {
+      setSelectedEvidenceId(ev.id);
+      onSelectEvidence?.(ev);
+      onContextChange?.({ activeEvent: { id: ev.id, type: ev.type || ev.content_type || 'evidence' }, selectedEvidence: ev, currentState: String(selectedDelivery.state || 'DETECTED').toUpperCase(), anomalyCount: selectedDelivery.anomaly_data ? 1 : 0, operatorCount: (selectedDelivery.verification_results || []).filter((r: any) => String(r.analyzer || '').toLowerCase().includes('operator')).length, confidenceSeries: [selectedDelivery.confidence] });
+    }
+  }, [verificationIndex, selectedDelivery]);
+
   useEffect(() => {
     queueBeatRef.current = window.setInterval(() => {
       setQueueBeat((x) => (x + 1) % 10000);
     }, 4200);
+
     return () => {
       if (queueBeatRef.current) window.clearInterval(queueBeatRef.current);
     };
@@ -387,7 +423,6 @@ const ForensicTimeline = ({ delivery }: ForensicTimelineProps) => {
   const syncPlay = () => {
     if (!selectedDelivery) return;
     const vids = (selectedDelivery.evidence || []).filter((e: any) => String(e.content_type).startsWith("video/"));
-    // reset and play all video refs for synchronized forensic playback
     vids.forEach((v: any) => {
       const ref = videoRefs.current[v.id];
       try {
@@ -411,6 +446,66 @@ const ForensicTimeline = ({ delivery }: ForensicTimelineProps) => {
     return selectedDelivery.evidence.find((e: any) => e.id === selectedEvidenceId) || selectedDelivery.evidence[0];
   }, [selectedDelivery, selectedEvidenceId]);
 
+  useEffect(() => {
+    if (selectedEvidenceIdProp) setSelectedEvidenceId(selectedEvidenceIdProp);
+  }, [selectedEvidenceIdProp]);
+
+  useEffect(() => {
+    if (!selectedDelivery?.evidence?.length) return;
+    if (selectedEvidenceId) return;
+    setSelectedEvidenceId(selectedDelivery.evidence[0].id);
+  }, [selectedDelivery, selectedEvidenceId]);
+
+  const currentState = String(selectedDelivery?.state || "DETECTED").toUpperCase();
+  const anomalyCount = selectedDelivery?.anomaly_data ? 1 : 0;
+  const operatorCount = (selectedDelivery?.verification_results || []).filter((result: any) => String(result.analyzer || "").toLowerCase().includes("operator")).length;
+  const confidenceSeries = [
+    selectedDelivery?.confidence,
+    ...(selectedDelivery?.verification_results || []).map((result: any) => result.confidence)
+  ]
+    .filter((value): value is number => typeof value === "number")
+    .map((value) => Number(value.toFixed(2)));
+  // Stabilize context emission: keep a ref to onContextChange and emit only when primitive keys change.
+  const onContextChangeRef = useRef(onContextChange);
+  useEffect(() => { onContextChangeRef.current = onContextChange; }, [onContextChange]);
+
+  const stageProgressCount = useMemo(() => {
+    if (!selectedDelivery) return 0;
+    const analyzers = new Set((selectedDelivery.verification_results || []).map((x: any) => String(x.analyzer)));
+    let count = 0;
+    for (const label of stageLabels) {
+      let complete = analyzers.has(label);
+      if (label === "Invoice Uploaded") complete = complete || !!selectedDelivery.invoice_upload_timestamp;
+      if (label === "ANPR Verified") complete = complete || analyzers.has("ANPR Verified");
+      if (label === "Gross Weight Captured") complete = complete || !!selectedDelivery.weighbridge?.gross_weight;
+      if (label === "Unload Completed") complete = complete || !!selectedDelivery.unload_completion_timestamp;
+      if (label === "Tare Weight Captured") complete = complete || !!selectedDelivery.weighbridge?.tare_weight;
+      if (label === "Quantity Compared") complete = complete || selectedDelivery.weighbridge?.verification_result != null;
+      if (label === "Verification Locked") complete = complete || ["VERIFIED", "FLAGGED"].includes(String(selectedDelivery.state).toUpperCase());
+      if (label === "Audit Stored") complete = complete || analyzers.has("Audit Stored");
+      if (complete) count += 1;
+    }
+    return count;
+  }, [selectedDelivery?.id, selectedDelivery?.verification_results?.length, selectedDelivery?.weighbridge?.gross_weight, selectedDelivery?.invoice_upload_timestamp, selectedDelivery?.unload_completion_timestamp, selectedDelivery?.weighbridge?.tare_weight, selectedDelivery?.state]);
+
+  useEffect(() => {
+    const handler = onContextChangeRef.current;
+    if (!handler) return;
+    const latestConfidence = confidenceSeries[confidenceSeries.length - 1] ?? null;
+    handler({
+      deliveryId: selectedDelivery?.id || null,
+      selectedEvidenceId: activeEvidence?.id || null,
+      currentState,
+      anomalyCount,
+      operatorCount,
+      latestConfidence,
+      stageProgressCount,
+      replayMode: autoPlay ? "live" : "paused",
+      isPlaying: autoPlay
+    });
+    // Intentionally exclude the handler identity from deps - use ref above to avoid parent callback churn
+  }, [selectedDelivery?.id, activeEvidence?.id, currentState, anomalyCount, operatorCount, autoPlay, stageProgressCount, confidenceSeries.length]);
+
   const stageProgress = (d: Delivery) => {
     const analyzers = new Set((d.verification_results || []).map((x: any) => String(x.analyzer)));
     return stageLabels.map((label) => {
@@ -431,6 +526,16 @@ const ForensicTimeline = ({ delivery }: ForensicTimelineProps) => {
     <div className="space-y-3">
       <section className="rounded-2xl border border-white/10 bg-slate-950/95 px-4 py-3">
         <div className="flex items-center justify-between gap-3">
+
+                {activeEvidence ? (
+                  <div className="mt-4 border border-cyan-400/20 bg-cyan-500/10 p-3 text-sm text-cyan-50">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs uppercase tracking-[0.2em] text-cyan-100">
+                      <span>Playback lock</span>
+                      <span>{activeEvidence.file_name || "selected evidence"}</span>
+                    </div>
+                    <p className="mt-2 leading-6">The investigation cursor is synchronized to this artifact while the replay advances.</p>
+                  </div>
+                ) : null}
           <div>
             <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Forensic timeline</p>
             <h2 className="mt-1 text-lg font-semibold text-white">Infrastructure Delivery Reconstruction Engine</h2>
@@ -530,7 +635,7 @@ const ForensicTimeline = ({ delivery }: ForensicTimelineProps) => {
               </div>
               <div className="grid grid-cols-3 gap-1">
                 {(selectedDelivery.evidence || []).map((ev: any) => (
-                  <button key={ev.id} onClick={() => setSelectedEvidenceId(ev.id)} className={`overflow-hidden rounded border transition-all duration-300 ${selectedEvidenceId === ev.id ? "border-cyan-400/60 ring-1 ring-cyan-400/35" : "border-white/10 hover:border-cyan-400/35"}`}>
+                  <button key={ev.id} onClick={() => { setSelectedEvidenceId(ev.id); onSelectEvidence?.(ev); }} className={`overflow-hidden rounded border transition-all duration-300 ${selectedEvidenceId === ev.id ? "border-cyan-400/60 ring-1 ring-cyan-400/35" : "border-white/10 hover:border-cyan-400/35"}`}>
                     {String(ev.content_type || "").startsWith("video/") ? (
                       <video ref={(el) => { if (el) videoRefs.current[ev.id] = el; }} src={ev.storage_path} poster={ev.poster || undefined} muted playsInline className={`h-16 w-full object-cover transition-transform duration-300 ${selectedEvidenceId === ev.id ? "scale-[1.03]" : "hover:scale-[1.02]"}`} />
                     ) : (
@@ -541,7 +646,7 @@ const ForensicTimeline = ({ delivery }: ForensicTimelineProps) => {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {(selectedDelivery.evidence || []).slice(0, 4).map((ev: any) => (
-                  <EvidenceCard key={ev.id} evidence={ev} onOpen={() => setSelectedEvidenceId(ev.id)} />
+                  <EvidenceCard key={ev.id} evidence={ev} onOpen={() => { setSelectedEvidenceId(ev.id); onSelectEvidence?.(ev); }} />
                 ))}
               </div>
             </div>

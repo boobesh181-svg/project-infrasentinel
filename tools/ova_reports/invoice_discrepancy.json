@@ -1,0 +1,106 @@
+{
+  "scenario": "Invoice discrepancy",
+  "report": {
+    "operationalSummary": "Vehicle TN-71-BB-777 delivered less than invoice by 6 T (declared 18 T, delivered 12 T).",
+    "discrepancyExplanation": "Delivered weight is 6 T less than declared invoice weight (18 T).",
+    "anomalySeverity": "critical",
+    "confidenceBreakdown": {
+      "anpr": 0.93,
+      "weighbridge": 0.95,
+      "invoice": 0.95,
+      "aggregate": 0.942
+    },
+    "possibleCauses": [
+      "Partial unloading prior to weighbridge (delivered < invoiced).",
+      "Invoice overstatement or clerical error."
+    ],
+    "escalationRecommendation": [
+      "Escalation recommended: operator review and site log verification.",
+      "Open incident ticket and notify operations manager if discrepancy persists."
+    ],
+    "supportingEvidence": [
+      "ANPR matched vehicle plate with 93% confidence.",
+      "Weighbridge recorded 12 T with 95% confidence.",
+      "Invoice OCR/document trust score 95%."
+    ],
+    "conflictingEvidence": [
+      "Delivered weight (12 T) differs from invoice (18 T).",
+      "Vehicle plate does not match expected invoice identifier."
+    ],
+    "evidenceGaps": [
+      "No unloading/offloading footage captured.",
+      "No operator log or manual verification record.",
+      "No tare weight or empty weight record."
+    ],
+    "confidenceRationale": "Weighted by source importance: ANPR high (93%); weighbridge high (95%); invoice trusted (95%). Aggregate confidence: 94%.",
+    "eventTimeline": [
+      {
+        "event": "Invoice issued and uploaded to system."
+      },
+      {
+        "event": "Vehicle TN-71-BB-777 entered site and captured by ANPR."
+      },
+      {
+        "event": "Gross weight recorded: 12 T."
+      },
+      {
+        "event": "Material unloading and offloading executed."
+      },
+      {
+        "event": "Tare weight recorded (if applicable)."
+      },
+      {
+        "event": "Quantity comparison executed: declared 18 T, delivered 12 T."
+      },
+      {
+        "event": "Verification report generated."
+      }
+    ],
+    "finding": "Delivery verification detected a CRITICAL severity discrepancy: 6 T less than invoice (33.3% variance). Vehicle TN-71-BB-777 delivered 12 T versus declared 18 T. Aggregate confidence in this finding: 94%. Supporting evidence: 3 items. Conflicting evidence: 2 items.",
+    "riskAssessment": {
+      "operational": "critical",
+      "financial": "high",
+      "verificationConfidence": 94
+    },
+    "escalationDecision": {
+      "decision": "open_incident",
+      "justification": "CRITICAL severity discrepancy (6 T). Open formal incident ticket. Notify senior operations and finance. Audit chain-of-custody, verify weighbridge calibration, inspect unloading records, and conduct photo evidence review."
+    },
+    "metadata": {
+      "vehicle": "TN-71-BB-777",
+      "invoiceId": "INV-555",
+      "deliveredWeight": 12,
+      "declaredWeight": 18,
+      "discrepancy": 6,
+      "unit": "T",
+      "evidenceCount": 3
+    }
+  },
+  "human": "═══════════════════════════════════════════════════════════════\nINFRASTRUCTURE INVESTIGATION REPORT\n═══════════════════════════════════════════════════════════════\n\nEXECUTIVE SUMMARY\n---------------------------------------------------------------\nVehicle TN-71-BB-777 delivered less than invoice by 6 T (declared 18 T, delivered 12 T).\n\nINVESTIGATION FINDING\n---------------------------------------------------------------\nDelivery verification detected a CRITICAL severity discrepancy: 6 T less than invoice (33.3% variance). Vehicle TN-71-BB-777 delivered 12 T versus declared 18 T. Aggregate confidence in this finding: 94%. Supporting evidence: 3 items. Conflicting evidence: 2 items.\n\nVERIFICATION SUMMARY\n---------------------------------------------------------------\nSeverity: CRITICAL\nDiscrepancy: Delivered weight is 6 T less than declared invoice weight (18 T).\n\nEVIDENCE ANALYSIS\n---------------------------------------------------------------\n\nSupporting Evidence:\n  ✓ ANPR matched vehicle plate with 93% confidence.\n  ✓ Weighbridge recorded 12 T with 95% confidence.\n  ✓ Invoice OCR/document trust score 95%.\n\nConflicting Evidence:\n  ✗ Delivered weight (12 T) differs from invoice (18 T).\n  ✗ Vehicle plate does not match expected invoice identifier.\n\nEvidence Gaps:\n  ⊘ No unloading/offloading footage captured.\n  ⊘ No operator log or manual verification record.\n  ⊘ No tare weight or empty weight record.\n\nConfidence Rationale:\n  Weighted by source importance: ANPR high (93%); weighbridge high (95%); invoice trusted (95%). Aggregate confidence: 94%.\n\nEVENT TIMELINE\n---------------------------------------------------------------\n  • Invoice issued and uploaded to system.\n  • Vehicle TN-71-BB-777 entered site and captured by ANPR.\n  • Gross weight recorded: 12 T.\n  • Material unloading and offloading executed.\n  • Tare weight recorded (if applicable).\n  • Quantity comparison executed: declared 18 T, delivered 12 T.\n  • Verification report generated.\n\nCONFIDENCE ASSESSMENT\n---------------------------------------------------------------\nANPR: 93.0%\nWeighbridge: 95.0%\nInvoice: 95.0%\nAggregate Confidence: 94.2%\n\nPOSSIBLE CAUSES\n---------------------------------------------------------------\n  • Partial unloading prior to weighbridge (delivered < invoiced).\n  • Invoice overstatement or clerical error.\n\nRISK ASSESSMENT\n---------------------------------------------------------------\nOperational Risk: CRITICAL\nFinancial Risk: HIGH\nVerification Confidence: 94%\n\nESCALATION DECISION\n---------------------------------------------------------------\nDecision: OPEN_INCIDENT\nJustification: CRITICAL severity discrepancy (6 T). Open formal incident ticket. Notify senior operations and finance. Audit chain-of-custody, verify weighbridge calibration, inspect unloading records, and conduct photo evidence review.\n\nRECOMMENDED ACTIONS\n---------------------------------------------------------------\n  • Escalation recommended: operator review and site log verification.\n  • Open incident ticket and notify operations manager if discrepancy persists.\n\n═══════════════════════════════════════════════════════════════",
+  "checks": [
+    {
+      "name": "severity",
+      "pass": false,
+      "expected": "major",
+      "actual": "critical"
+    },
+    {
+      "name": "confidence_aggregate_present",
+      "pass": true,
+      "value": 0.942
+    },
+    {
+      "name": "discrepancy_explanation",
+      "pass": true
+    },
+    {
+      "name": "possible_causes",
+      "pass": true,
+      "count": 2
+    },
+    {
+      "name": "escalation_recommendation",
+      "pass": true
+    }
+  ]
+}

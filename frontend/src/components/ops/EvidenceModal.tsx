@@ -1,5 +1,5 @@
 import Badge from "../ui/Badge";
-import { X, Hash, ShieldCheck, Clock3, FileImage } from "lucide-react";
+import { X, Hash, ShieldCheck, Clock3, FileImage, Camera, MapPin, SunMoon, ScanLine } from "lucide-react";
 
 type Props = {
   open: boolean;
@@ -12,6 +12,13 @@ const EvidenceModal = ({ open, evidence, onClose }: Props) => {
 
   const previewIsImage = evidence.content_type?.startsWith("image") || evidence.file_type?.startsWith("image");
   const previewIsVideo = evidence.content_type?.startsWith("video") || evidence.file_type?.startsWith("video");
+  const siteName = evidence.site_name || evidence.site || "Unknown Site";
+  const siteId = evidence.site_id || "SITE-UNK";
+  const cameraId = evidence.camera_id || "CAM-UNKNOWN";
+  const angle = evidence.camera_angle || "Operational angle";
+  const weather = evidence.weather || "Operational";
+  const lighting = evidence.lighting || "Daylight";
+  const integrity = String(evidence.integrity_status || (evidence.file_hash ? "HASHED" : "UNVERIFIED")).toUpperCase();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/88 px-4 py-6 backdrop-blur-md" onClick={onClose}>
@@ -35,14 +42,14 @@ const EvidenceModal = ({ open, evidence, onClose }: Props) => {
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <Badge label={(evidence.file_type || evidence.content_type || "UNKNOWN").toUpperCase()} />
             {evidence.uploaded_by ? <Badge label={`UPLOADED BY ${String(evidence.uploaded_by).slice(0, 8)}`} /> : null}
-            {evidence.file_hash ? <Badge label="HASHED" /> : null}
+            {evidence.file_hash ? <Badge label={integrity} /> : null}
             <Badge label={previewIsImage ? "IMAGE" : previewIsVideo ? "VIDEO" : "ARTIFACT"} />
           </div>
         </div>
 
         <div className="grid gap-0 lg:grid-cols-[1.35fr_0.65fr]">
           <div className="bg-slate-950 p-6">
-            <div className="overflow-hidden border border-white/10 bg-black/40">
+            <div className="relative overflow-hidden border border-white/10 bg-black/40">
               {previewIsImage ? (
                 <img src={evidence.storage_path} alt={evidence.file_name} className="h-full w-full object-cover" />
               ) : previewIsVideo ? (
@@ -66,6 +73,25 @@ const EvidenceModal = ({ open, evidence, onClose }: Props) => {
                 </p>
                 <p className="mt-2 text-slate-100">{evidence.uploaded_at || "—"}</p>
               </div>
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-slate-950/75 to-transparent" />
+              <div className="pointer-events-none absolute left-4 top-4 flex flex-wrap gap-2 text-[10px] uppercase tracking-[0.18em] text-slate-100">
+                <span className="inline-flex items-center gap-1 border border-cyan-400/20 bg-slate-950/70 px-2 py-1">
+                  <Camera className="h-3 w-3 text-cyan-300" />
+                  {cameraId}
+                </span>
+                <span className="inline-flex items-center gap-1 border border-white/10 bg-slate-950/70 px-2 py-1">
+                  <MapPin className="h-3 w-3 text-cyan-300" />
+                  {siteId} · {siteName}
+                </span>
+                <span className="inline-flex items-center gap-1 border border-white/10 bg-slate-950/70 px-2 py-1">
+                  <SunMoon className="h-3 w-3 text-cyan-300" />
+                  {lighting}
+                </span>
+                <span className="inline-flex items-center gap-1 border border-white/10 bg-slate-950/70 px-2 py-1">
+                  <ScanLine className="h-3 w-3 text-cyan-300" />
+                  {angle}
+                </span>
+              </div>
               <div className="border border-white/10 bg-white/4 p-3">
                 <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-slate-500">
                   <Hash className="h-3.5 w-3.5 text-cyan-300" />
@@ -86,6 +112,20 @@ const EvidenceModal = ({ open, evidence, onClose }: Props) => {
                   Content type
                 </p>
                 <p className="mt-2 text-slate-100">{evidence.content_type || evidence.file_type || "—"}</p>
+              </div>
+              <div className="border border-white/10 bg-white/4 p-3">
+                <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-slate-500">
+                  <Camera className="h-3.5 w-3.5 text-cyan-300" />
+                  Camera / angle
+                </p>
+                <p className="mt-2 text-slate-100">{cameraId} · {angle}</p>
+              </div>
+              <div className="border border-white/10 bg-white/4 p-3">
+                <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-slate-500">
+                  <SunMoon className="h-3.5 w-3.5 text-cyan-300" />
+                  Lighting / weather
+                </p>
+                <p className="mt-2 text-slate-100">{lighting} · {weather}</p>
               </div>
             </div>
           </div>

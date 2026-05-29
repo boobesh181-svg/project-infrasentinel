@@ -1,0 +1,88 @@
+{
+  "id": "incomplete_evidence",
+  "label": "Incomplete Evidence Chain",
+  "evidence": [
+    {
+      "id": "gate_entry_3",
+      "type": "truck-arrival",
+      "timestamp": "2026-05-27T08:32:00.000Z",
+      "siteId": "SITE-C03",
+      "cameraId": "GATE-CAM-03",
+      "cameraAngle": "wide",
+      "weather": "Clear",
+      "lighting": "Daylight",
+      "operator": "auto",
+      "fileName": "c:/Users/boobesh/Downloads/15233119_2160_3840_30fps (1).mp4",
+      "fileSize": 31145801,
+      "hash": "sha1:6c205808e981eab616e48f9e5d4681251ef34c3f",
+      "confidence": 0.85
+    },
+    {
+      "id": "anpr_3",
+      "type": "anpr",
+      "timestamp": "2026-05-27T08:34:00.000Z",
+      "siteId": "SITE-C03",
+      "anpr": {
+        "plate": "TN-00-XX-000",
+        "confidence": 0.7
+      }
+    },
+    {
+      "id": "inv",
+      "type": "invoice",
+      "timestamp": "2026-05-27T08:13:00.000Z",
+      "siteId": "SITE-C03",
+      "invoice": {
+        "id": "INV-3000",
+        "declaredWeight": 12,
+        "unit": "T",
+        "trusted": 0.9
+      }
+    }
+  ],
+  "report": {
+    "operationalSummary": "TN-00-XX-000 delivery verification.",
+    "discrepancyExplanation": "verification incomplete: missing weighbridge or invoice evidence.",
+    "anomalySeverity": "minor",
+    "confidenceBreakdown": {
+      "anpr": 0.7,
+      "weighbridge": 0.95,
+      "invoice": 0.9,
+      "aggregate": 0.8449999999999999
+    },
+    "possibleCauses": [
+      "Partial evidence chain — missing measurements or documents."
+    ],
+    "escalationRecommendation": [
+      "review"
+    ],
+    "supportingEvidence": [
+      "Invoice trusted 90%."
+    ],
+    "conflictingEvidence": [],
+    "evidenceGaps": [
+      "No weighbridge data."
+    ],
+    "confidenceRationale": "ANPR 70%; Weighbridge 95%; Invoice 90%",
+    "eventTimeline": [],
+    "finding": "",
+    "riskAssessment": {
+      "operational": "low",
+      "financial": "low",
+      "verificationConfidence": 84
+    },
+    "escalationDecision": {
+      "decision": "review",
+      "justification": "See recommendations."
+    },
+    "metadata": {
+      "vehicle": "TN-00-XX-000",
+      "invoiceId": "INV-3000",
+      "deliveredWeight": null,
+      "declaredWeight": 12,
+      "discrepancy": null,
+      "unit": "T",
+      "evidenceCount": 3
+    }
+  }
+}

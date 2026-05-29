@@ -1,4 +1,4 @@
-import { FileImage, FileText, X } from "lucide-react";
+import { FileImage, FileText, X, CalendarClock, MapPin, Camera, ShieldCheck } from "lucide-react";
 import Badge from "../ui/Badge";
 
 type Props = {
@@ -15,6 +15,10 @@ const InvoiceEvidenceModal = ({ open, invoice, previewUrl, onClose }: Props) => 
   const isImage = contentType.startsWith("image/");
   const isVideo = contentType.startsWith("video/");
   const isPdf = contentType === "application/pdf";
+  const siteName = invoice.site_name || "Unknown Site";
+  const siteId = invoice.site_id || "SITE-UNK";
+  const cameraId = invoice.camera_id || "UPLOAD-SVC-01";
+  const integrity = String(invoice.integrity_status || (invoice.file_hash ? "HASHED" : "UNVERIFIED")).toUpperCase();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 px-4 py-6 backdrop-blur-md" onClick={onClose}>
@@ -38,13 +42,14 @@ const InvoiceEvidenceModal = ({ open, invoice, previewUrl, onClose }: Props) => 
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <Badge label={(contentType || "UNKNOWN").toUpperCase()} />
             <Badge label={`HASH ${invoice.file_hash?.slice(0, 8) || "—"}`} />
+            <Badge label={integrity} />
             <Badge label={isImage ? "IMAGE" : isPdf ? "PDF" : "DOCUMENT"} />
           </div>
         </div>
 
         <div className="grid gap-0 lg:grid-cols-[1.4fr_0.6fr]">
           <div className="bg-slate-950 p-6">
-            <div className="overflow-hidden border border-white/10 bg-black/40">
+            <div className="relative overflow-hidden border border-white/10 bg-black/40">
               {previewUrl && isImage ? (
                 <img src={previewUrl} alt={invoice.file_name} className="h-full w-full object-cover" />
               ) : previewUrl && isVideo ? (
@@ -57,6 +62,21 @@ const InvoiceEvidenceModal = ({ open, invoice, previewUrl, onClose }: Props) => 
                   Preview unavailable. Use the download action to review.
                 </div>
               )}
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-slate-950/75 to-transparent" />
+              <div className="pointer-events-none absolute left-4 top-4 flex flex-wrap gap-2 text-[10px] uppercase tracking-[0.18em] text-slate-100">
+                <span className="inline-flex items-center gap-1 border border-white/10 bg-slate-950/70 px-2 py-1">
+                  <Camera className="h-3 w-3 text-cyan-300" />
+                  {cameraId}
+                </span>
+                <span className="inline-flex items-center gap-1 border border-white/10 bg-slate-950/70 px-2 py-1">
+                  <MapPin className="h-3 w-3 text-cyan-300" />
+                  {siteId} · {siteName}
+                </span>
+                <span className="inline-flex items-center gap-1 border border-white/10 bg-slate-950/70 px-2 py-1">
+                  <ShieldCheck className="h-3 w-3 text-emerald-300" />
+                  {integrity}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -74,6 +94,13 @@ const InvoiceEvidenceModal = ({ open, invoice, previewUrl, onClose }: Props) => 
               <div className="border border-white/10 bg-white/4 p-3">
                 <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Invoice ID</p>
                 <p className="mt-2 text-slate-100">{invoice.invoice_number || "—"}</p>
+              </div>
+              <div className="border border-white/10 bg-white/4 p-3">
+                <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-slate-500">
+                  <CalendarClock className="h-3.5 w-3.5 text-cyan-300" />
+                  Capture / review
+                </p>
+                <p className="mt-2 text-slate-100">{invoice.uploaded_at ? new Date(invoice.uploaded_at).toLocaleString() : "—"}</p>
               </div>
             </div>
           </div>

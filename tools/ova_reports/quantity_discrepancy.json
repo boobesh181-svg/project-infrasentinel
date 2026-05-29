@@ -1,0 +1,117 @@
+{
+  "id": "quantity_discrepancy",
+  "label": "Quantity Discrepancy",
+  "evidence": [
+    {
+      "id": "gate_entry_2",
+      "type": "truck-arrival",
+      "timestamp": "2026-05-27T08:22:00.000Z",
+      "siteId": "SITE-B02",
+      "cameraId": "GATE-CAM-01",
+      "cameraAngle": "wide",
+      "weather": "Clear",
+      "lighting": "Daylight",
+      "operator": "auto",
+      "fileName": "c:/Users/boobesh/Downloads/15969748_2160_3840_30fps.mp4",
+      "fileSize": 79577528,
+      "hash": "sha1:9de08903e5e72b678bdd4dc00b5df1b96067fb67",
+      "confidence": 0.9
+    },
+    {
+      "id": "anpr_2",
+      "type": "anpr",
+      "timestamp": "2026-05-27T08:24:00.000Z",
+      "siteId": "SITE-B02",
+      "anpr": {
+        "plate": "TN-55-XY-100",
+        "confidence": 0.92
+      }
+    },
+    {
+      "id": "wb_2",
+      "type": "weighbridge",
+      "timestamp": "2026-05-27T08:26:00.000Z",
+      "siteId": "SITE-B02",
+      "weighbridge": {
+        "weight": 16.4,
+        "unit": "T",
+        "confidence": 0.96
+      }
+    },
+    {
+      "id": "unload_2",
+      "type": "unloading",
+      "timestamp": "2026-05-27T08:28:00.000Z",
+      "siteId": "SITE-B02",
+      "cameraId": "UNLOAD-CAM-02",
+      "cameraAngle": "rear",
+      "weather": "Clear",
+      "lighting": "Daylight",
+      "operator": "auto",
+      "fileName": "c:/Users/boobesh/Downloads/18370431-uhd_3840_2160_30fps.mp4",
+      "fileSize": 36958535,
+      "hash": "sha1:adb28b8e7cebfd60852ed35600834e28cbcbe527",
+      "confidence": 0.9
+    },
+    {
+      "id": "inv",
+      "type": "invoice",
+      "timestamp": "2026-05-27T08:13:00.000Z",
+      "siteId": "SITE-B02",
+      "invoice": {
+        "id": "INV-2000",
+        "declaredWeight": 18,
+        "unit": "T",
+        "trusted": 0.93
+      }
+    }
+  ],
+  "report": {
+    "operationalSummary": "TN-55-XY-100 delivery verification.",
+    "discrepancyExplanation": "Delivered weight is 1.6 T less than declared invoice weight (18 T).",
+    "anomalySeverity": "moderate",
+    "confidenceBreakdown": {
+      "anpr": 0.92,
+      "weighbridge": 0.96,
+      "invoice": 0.93,
+      "aggregate": 0.9410000000000001
+    },
+    "possibleCauses": [
+      "Partial unloading prior to weighbridge.",
+      "Invoice overstatement."
+    ],
+    "escalationRecommendation": [
+      "escalate"
+    ],
+    "supportingEvidence": [
+      "ANPR matched vehicle plate with 92% confidence.",
+      "Weighbridge recorded 16.4 T with 96% confidence.",
+      "Invoice trusted 93%."
+    ],
+    "conflictingEvidence": [
+      "Delivered weight (16.4 T) differs from invoice (18 T)."
+    ],
+    "evidenceGaps": [],
+    "confidenceRationale": "ANPR 92%; Weighbridge 96%; Invoice 93%",
+    "eventTimeline": [],
+    "finding": "",
+    "riskAssessment": {
+      "operational": "low",
+      "financial": "low",
+      "verificationConfidence": 94
+    },
+    "escalationDecision": {
+      "decision": "escalate",
+      "justification": "See recommendations."
+    },
+    "metadata": {
+      "vehicle": "TN-55-XY-100",
+      "invoiceId": "INV-2000",
+      "deliveredWeight": 16.4,
+      "declaredWeight": 18,
+      "discrepancy": 1.6,
+      "unit": "T",
+      "evidenceCount": 5
+    }
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "scenario": "Missing evidence",
+  "report": {
+    "operationalSummary": "Vehicle TN-00-XX-000: verification incomplete — missing invoice or weighbridge record.",
+    "discrepancyExplanation": "verification incomplete: missing weighbridge or invoice evidence.",
+    "anomalySeverity": "minor",
+    "confidenceBreakdown": {
+      "anpr": 0.9,
+      "weighbridge": 0.95,
+      "invoice": 0.85,
+      "aggregate": 0.92
+    },
+    "possibleCauses": [
+      "Camera outage or blurred frames preventing evidence capture.",
+      "Upload or ingestion failure for evidence files.",
+      "Evidence retention or purge configuration removed expected files.",
+      "Synchronization delay between systems (weighbridge / camera uploads).",
+      "Operator omission: manual records not yet attached.",
+      "Hardware malfunction at capture point (camera/scale)."
+    ],
+    "escalationRecommendation": [
+      "Escalation recommended: operator review and site log verification.",
+      "Open incident ticket and notify operations manager if discrepancy persists."
+    ],
+    "supportingEvidence": [
+      "ANPR matched vehicle plate with 90% confidence.",
+      "Partial evidence chain established (1 evidence item(s) captured)."
+    ],
+    "conflictingEvidence": [],
+    "evidenceGaps": [
+      "No weighbridge/scale measurement data available.",
+      "No invoice/declared weight data available.",
+      "No unloading/offloading footage captured.",
+      "No operator log or manual verification record.",
+      "No tare weight or empty weight record."
+    ],
+    "confidenceRationale": "Weighted by source importance: ANPR high (90%); weighbridge high (95%); invoice moderate trust (85%). Aggregate confidence: 92%.",
+    "eventTimeline": [
+      {
+        "event": "Vehicle TN-00-XX-000 entered site and captured by ANPR."
+      },
+      {
+        "event": "Material unloading and offloading executed."
+      },
+      {
+        "event": "Tare weight recorded (if applicable)."
+      },
+      {
+        "event": "Verification report generated."
+      }
+    ],
+    "finding": "Delivery verification incomplete. 1 evidence item(s) captured. 5 critical evidence gap(s) identified. Recommend collecting missing data before final verification.",
+    "riskAssessment": {
+      "operational": "low",
+      "financial": "low",
+      "verificationConfidence": 92
+    },
+    "escalationDecision": {
+      "decision": "review",
+      "justification": "Minor discrepancy detected (0 units). Operator review recommended. If evidence gaps present, escalate for data collection."
+    },
+    "metadata": {
+      "vehicle": "TN-00-XX-000",
+      "invoiceId": null,
+      "deliveredWeight": null,
+      "declaredWeight": null,
+      "discrepancy": null,
+      "unit": "units",
+      "evidenceCount": 1
+    }
+  },
+  "human": "═══════════════════════════════════════════════════════════════\nINFRASTRUCTURE INVESTIGATION REPORT\n═══════════════════════════════════════════════════════════════\n\nEXECUTIVE SUMMARY\n---------------------------------------------------------------\nVehicle TN-00-XX-000: verification incomplete — missing invoice or weighbridge record.\n\nINVESTIGATION FINDING\n---------------------------------------------------------------\nDelivery verification incomplete. 1 evidence item(s) captured. 5 critical evidence gap(s) identified. Recommend collecting missing data before final verification.\n\nVERIFICATION SUMMARY\n---------------------------------------------------------------\nSeverity: MINOR\nDiscrepancy: verification incomplete: missing weighbridge or invoice evidence.\n\nEVIDENCE ANALYSIS\n---------------------------------------------------------------\n\nSupporting Evidence:\n  ✓ ANPR matched vehicle plate with 90% confidence.\n  ✓ Partial evidence chain established (1 evidence item(s) captured).\n\nEvidence Gaps:\n  ⊘ No weighbridge/scale measurement data available.\n  ⊘ No invoice/declared weight data available.\n  ⊘ No unloading/offloading footage captured.\n  ⊘ No operator log or manual verification record.\n  ⊘ No tare weight or empty weight record.\n\nConfidence Rationale:\n  Weighted by source importance: ANPR high (90%); weighbridge high (95%); invoice moderate trust (85%). Aggregate confidence: 92%.\n\nEVENT TIMELINE\n---------------------------------------------------------------\n  • Vehicle TN-00-XX-000 entered site and captured by ANPR.\n  • Material unloading and offloading executed.\n  • Tare weight recorded (if applicable).\n  • Verification report generated.\n\nCONFIDENCE ASSESSMENT\n---------------------------------------------------------------\nANPR: 90.0%\nWeighbridge: 95.0%\nInvoice: 85.0%\nAggregate Confidence: 92.0%\n\nPOSSIBLE CAUSES\n---------------------------------------------------------------\n  • Camera outage or blurred frames preventing evidence capture.\n  • Upload or ingestion failure for evidence files.\n  • Evidence retention or purge configuration removed expected files.\n  • Synchronization delay between systems (weighbridge / camera uploads).\n  • Operator omission: manual records not yet attached.\n  • Hardware malfunction at capture point (camera/scale).\n\nRISK ASSESSMENT\n---------------------------------------------------------------\nOperational Risk: LOW\nFinancial Risk: LOW\nVerification Confidence: 92%\n\nESCALATION DECISION\n---------------------------------------------------------------\nDecision: REVIEW\nJustification: Minor discrepancy detected (0 units). Operator review recommended. If evidence gaps present, escalate for data collection.\n\nRECOMMENDED ACTIONS\n---------------------------------------------------------------\n  • Escalation recommended: operator review and site log verification.\n  • Open incident ticket and notify operations manager if discrepancy persists.\n\n═══════════════════════════════════════════════════════════════",
+  "checks": [
+    {
+      "name": "severity",
+      "pass": true,
+      "expected": "minor",
+      "actual": "minor"
+    },
+    {
+      "name": "confidence_aggregate_present",
+      "pass": true,
+      "value": 0.92
+    },
+    {
+      "name": "discrepancy_explanation",
+      "pass": true
+    },
+    {
+      "name": "possible_causes",
+      "pass": true,
+      "count": 6
+    },
+    {
+      "name": "escalation_recommendation",
+      "pass": true
+    }
+  ]
+}

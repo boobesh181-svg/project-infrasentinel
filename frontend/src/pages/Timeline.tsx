@@ -2,67 +2,12 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, FileImage, Hash, ShieldAlert, GitBranch, Clock3, Truck, FileText, CircleDot } from "lucide-react";
 import { format, subDays } from "date-fns";
+import { useEffect, useState } from "react";
 import OperationsLayout from "../components/layout/OperationsLayout";
 import Badge from "../components/ui/Badge";
+import { listLocalDeliveries } from "../api/ops";
 
-const seedGroups = () => {
-  const plates = ["TN-22-AB-4821", "TN-11-XY-7788", "TN-07-CD-9014", "TN-33-KL-5562"];
-  const suppliers = ["Narayana Sand Co.", "Titan Steel", "Acme Aggregates", "Gita Crushers"];
-  const materials = ["Cement", "Steel", "Aggregate", "Sand"];
-  const verificationStates = ["Invoice Uploaded", "ANPR Verified", "Gross Weight Captured", "Quantity Compared", "Verified"];
-  const evidencePaths: Record<string, string[]> = {
-    truck: ["/assets/realistic/truck-arrival-1.jpg", "/assets/realistic/truck-arrival-2.jpg", "/assets/realistic/truck-arrival-3.jpg"],
-    anpr: ["/assets/realistic/anpr-1.jpg", "/assets/realistic/anpr-2.jpg"],
-    invoice: ["/assets/realistic/invoice-1.png", "/assets/realistic/invoice-2.png"],
-    weighbridge: ["/assets/realistic/weighbridge-1.jpg", "/assets/realistic/weighbridge-2.jpg"]
-  };
-
-  return Array.from({ length: 3 }).map((_, dayIndex) => {
-    const date = subDays(new Date(), dayIndex);
-    const deliveries = Array.from({ length: 4 + dayIndex }).map((__, index) => {
-      const mismatched = dayIndex === 0 && index === 1;
-      const plate = plates[(dayIndex + index) % plates.length];
-      const supplier = suppliers[(dayIndex + index) % suppliers.length];
-      const material = materials[(dayIndex + index) % materials.length];
-      const deliveryId = `${format(date, "yyyyMMdd")}-${index}`;
-      const time = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 8 + index, 12 + index * 7);
-
-      return {
-        id: deliveryId,
-        time,
-        plate,
-        supplier,
-        material,
-        state: mismatched ? "Quantity Mismatch" : index % 3 === 0 ? "Verified" : "Processing",
-        tons: mismatched ? 16.4 : 18 + index * 1.7,
-        expected: mismatched ? 18 : 18 + index * 1.5,
-        confidence: mismatched ? 0.84 : 0.92 - index * 0.03,
-        anomaly: mismatched,
-        invoice: `INV-${format(date, "yy")}-${dayIndex}${index}${index + 3}`,
-        evidence: ["truck", "anpr", "invoice", "weighbridge"].slice(0, mismatched ? 4 : 3 + (index % 2)),
-        verificationChain: verificationStates.slice(0, mismatched ? 5 : 4 + (index % 2)),
-        evidencePaths: {
-          truck: evidencePaths.truck[(dayIndex + index) % evidencePaths.truck.length],
-          anpr: evidencePaths.anpr[(dayIndex + index) % evidencePaths.anpr.length],
-          invoice: evidencePaths.invoice[(dayIndex + index) % evidencePaths.invoice.length],
-          weighbridge: evidencePaths.weighbridge[(dayIndex + index) % evidencePaths.weighbridge.length]
-        }
-      };
-    });
-
-    const verifiedTons = deliveries.filter((delivery) => !delivery.anomaly).reduce((sum, delivery) => sum + delivery.tons, 0);
-    const activeSuppliers = new Set(deliveries.map((delivery) => delivery.supplier)).size;
-    return {
-      date,
-      deliveries,
-      verifiedTons: Math.round(verifiedTons * 10) / 10,
-      anomalies: deliveries.filter((delivery) => delivery.anomaly).length,
-      activeSuppliers,
-      activeInvestigations: deliveries.filter((delivery) => delivery.anomaly).length
-    };
-  });
-};
-
+// helper to render evidence labels
 const evidenceLabel = (kind: string) => {
   switch (kind) {
     case "truck":
@@ -100,7 +45,15 @@ const verificationTone = (state: string) => {
 };
 
 const Timeline = () => {
-  const groups = useMemo(() => seedGroups(), []);
+  const [groups, setGroups] = useState<any[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const rows = await listLocalDeliveries();
+      const grouped = rows.map((r: any) => ({ date: new Date(r.time), deliveries: [r], verifiedTons: r.tons, anomalies: r.anomaly ? 1 : 0, activeSuppliers: 1, activeInvestigations: r.anomaly ? 1 : 0 }));
+      setGroups(grouped);
+    })();
+  }, []);
 
   return (
     <OperationsLayout
@@ -140,7 +93,7 @@ const Timeline = () => {
               </div>
 
               <div>
-                {group.deliveries.map((delivery, idx) => (
+                {group.deliveries.map((delivery: any, idx: number) => (
                   <article key={delivery.id} className="relative flex items-center gap-4 px-3 py-2 text-sm leading-none">
                     <div className="absolute left-2 top-0 h-full flex flex-col items-center">
                       <span className={`h-2.5 w-2.5 rounded-full ${delivery.anomaly ? 'bg-rose-400' : 'bg-cyan-400'}`} />
@@ -153,21 +106,22 @@ const Timeline = () => {
                     </div>
 
                     <div className="flex min-w-0 flex-1 items-center gap-3">
-                      <img src={delivery.evidencePaths.truck} alt="truck" className="h-12 w-24 object-cover" />
+                      <img src={delivery.evidencePaths?.truck || "/assets/realistic/truck-arrival-1.jpg"} alt="truck" className="h-12 w-24 object-cover" />
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-white truncate">{delivery.plate}</span>
                           <span className="text-xs text-slate-400 truncate">{delivery.supplier}</span>
                         </div>
                         <div className="text-xs text-slate-300 truncate">{delivery.material} · {delivery.invoice}</div>
+                        <div className="mt-1 text-xs text-slate-400">ID: {delivery.id} · Site: {delivery.site}</div>
                       </div>
                     </div>
 
                     <div className="w-64 flex-shrink-0">
                       <div className="flex items-center gap-2">
-                        <img src={delivery.evidencePaths.anpr} alt="anpr" className="h-12 w-20 object-cover" />
-                        <img src={delivery.evidencePaths.invoice} alt="inv" className="h-12 w-20 object-cover" />
-                        <img src={delivery.evidencePaths.weighbridge} alt="wb" className="h-12 w-20 object-cover" />
+                        <img src={delivery.evidencePaths?.anpr || "/assets/realistic/anpr-1.jpg"} alt="anpr" className="h-12 w-20 object-cover" />
+                        <img src={delivery.evidencePaths?.invoice || "/assets/realistic/invoice-1.png"} alt="inv" className="h-12 w-20 object-cover" />
+                        <img src={delivery.evidencePaths?.weighbridge || "/assets/realistic/weighbridge-1.jpg"} alt="wb" className="h-12 w-20 object-cover" />
                       </div>
                     </div>
 
@@ -175,11 +129,12 @@ const Timeline = () => {
                       <div className="text-white font-medium">{delivery.tons.toFixed(1)}T</div>
                       <div className="text-xs">exp {delivery.expected.toFixed(1)}T</div>
                       <div className="text-xs">conf {Math.round(delivery.confidence*100)}%</div>
+                      <div className="mt-1 text-xs">evidence: {delivery.evidenceCount} · videos: {delivery.videoCount} · anomalies: {delivery.anomalyCount}</div>
                     </div>
 
                     <div className="w-56 flex-shrink-0 text-xs">
                       <div className="flex items-center gap-2 text-slate-300">
-                        {delivery.verificationChain.map((s, i) => (
+                        {delivery.verificationChain.map((s: any, i: number) => (
                           <span key={s + i} className="inline-flex items-center gap-1">
                             <span className={`h-2 w-2 rounded-full ${s.toLowerCase().includes('verified') ? 'bg-emerald-400' : 'bg-amber-400'}`} />
                             <span className="truncate">{s}</span>

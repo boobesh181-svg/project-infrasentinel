@@ -6,6 +6,7 @@ import { useAuth } from "./hooks/useAuth";
 import CommandCenter from "./pages/CommandCenter";
 import Timeline from "./pages/Timeline";
 import AuditReplay from "./pages/AuditReplay";
+import ForensicDemo from "./pages/ForensicDemo";
 
 const LandingRedirect = () => {
   const { token } = useAuth();
@@ -26,6 +27,9 @@ const LegacyVerificationRedirect = () => {
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { token } = useAuth();
+  // In development, allow bypassing auth to enable runtime validation pages.
+  // Dev-only override: render children regardless of token.
+  if (import.meta.env.DEV) return children;
   if (!token) {
     return <Navigate to="/login" replace />;
   }
@@ -54,6 +58,7 @@ const App = () => {
         <Route index element={<Navigate to="/app/command-center" replace />} />
         <Route path="command-center" element={<CommandCenter />} />
         <Route path="timeline" element={<Timeline />} />
+        <Route path="forensic-demo" element={<ForensicDemo />} />
         <Route path="replay" element={<AuditReplay />} />
         <Route path="*" element={<CommandCenterRedirect to="/app/command-center" />} />
       </Route>

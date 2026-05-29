@@ -1,0 +1,129 @@
+{
+  "id": "verified_delivery",
+  "label": "Verified Delivery",
+  "evidence": [
+    {
+      "id": "gate_entry_1",
+      "type": "truck-arrival",
+      "timestamp": "2026-05-27T08:12:00.000Z",
+      "siteId": "SITE-A01",
+      "cameraId": "GATE-CAM-02",
+      "cameraAngle": "wide",
+      "weather": "Clear",
+      "lighting": "Daylight",
+      "operator": "auto",
+      "fileName": "c:/Users/boobesh/Downloads/7163093-uhd_3840_2160_24fps.mp4",
+      "fileSize": 49405908,
+      "hash": "sha1:cdb3f8ed1ee577a067c240a5c5edbfe5e88f1068",
+      "confidence": 0.95
+    },
+    {
+      "id": "site_entry_1",
+      "type": "site-entry",
+      "timestamp": "2026-05-27T08:14:00.000Z",
+      "siteId": "SITE-A01",
+      "cameraId": "SITE-CAM-01",
+      "cameraAngle": "front",
+      "weather": "Clear",
+      "lighting": "Daylight",
+      "operator": "auto",
+      "fileName": "c:/Users/boobesh/Downloads/11596308-hd_1920_1080_30fps.mp4",
+      "fileSize": 33819864,
+      "hash": "sha1:a187a5c3c12115cf0f47cddd335c7280186682db",
+      "confidence": 0.94
+    },
+    {
+      "id": "anpr_1",
+      "type": "anpr",
+      "timestamp": "2026-05-27T08:15:00.000Z",
+      "siteId": "SITE-A01",
+      "anpr": {
+        "plate": "TN-22-AB-4821",
+        "confidence": 0.96
+      }
+    },
+    {
+      "id": "wb_1",
+      "type": "weighbridge",
+      "timestamp": "2026-05-27T08:18:00.000Z",
+      "siteId": "SITE-A01",
+      "weighbridge": {
+        "weight": 16.4,
+        "unit": "T",
+        "confidence": 0.98
+      }
+    },
+    {
+      "id": "unload_1",
+      "type": "unloading",
+      "timestamp": "2026-05-27T08:20:00.000Z",
+      "siteId": "SITE-A01",
+      "cameraId": "UNLOAD-CAM-01",
+      "cameraAngle": "side",
+      "weather": "Clear",
+      "lighting": "Daylight",
+      "operator": "auto",
+      "fileName": "c:/Users/boobesh/Downloads/3365496-uhd_3840_2160_30fps.mp4",
+      "fileSize": 95275999,
+      "hash": "sha1:0fe0fe6e810c3c1766c457a41d6e08a1226ae1f7",
+      "confidence": 0.95
+    },
+    {
+      "id": "inv",
+      "type": "invoice",
+      "timestamp": "2026-05-27T08:13:00.000Z",
+      "siteId": "SITE-A01",
+      "invoice": {
+        "id": "INV-1000",
+        "declaredWeight": 16.4,
+        "unit": "T",
+        "trusted": 0.95
+      }
+    }
+  ],
+  "report": {
+    "operationalSummary": "TN-22-AB-4821 delivery verification.",
+    "discrepancyExplanation": "Delivered weight is 0 T greater than declared invoice weight (16.4 T).",
+    "anomalySeverity": "none",
+    "confidenceBreakdown": {
+      "anpr": 0.96,
+      "weighbridge": 0.98,
+      "invoice": 0.95,
+      "aggregate": 0.969
+    },
+    "possibleCauses": [
+      "Weighbridge over-reading or calibration issue."
+    ],
+    "escalationRecommendation": [
+      "monitor"
+    ],
+    "supportingEvidence": [
+      "ANPR matched vehicle plate with 96% confidence.",
+      "Weighbridge recorded 16.4 T with 98% confidence.",
+      "Invoice trusted 95%."
+    ],
+    "conflictingEvidence": [],
+    "evidenceGaps": [],
+    "confidenceRationale": "ANPR 96%; Weighbridge 98%; Invoice 95%",
+    "eventTimeline": [],
+    "finding": "",
+    "riskAssessment": {
+      "operational": "low",
+      "financial": "low",
+      "verificationConfidence": 97
+    },
+    "escalationDecision": {
+      "decision": "monitor",
+      "justification": "See recommendations."
+    },
+    "metadata": {
+      "vehicle": "TN-22-AB-4821",
+      "invoiceId": "INV-1000",
+      "deliveredWeight": 16.4,
+      "declaredWeight": 16.4,
+      "discrepancy": 0,
+      "unit": "T",
+      "evidenceCount": 6
+    }
+  }
+}

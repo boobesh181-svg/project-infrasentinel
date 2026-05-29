@@ -1,0 +1,109 @@
+{
+  "scenario": "ANPR mismatch",
+  "report": {
+    "operationalSummary": "Vehicle TN-11-AA-111 delivered more than invoice by 0 T (declared 18 T, delivered 18 T).",
+    "discrepancyExplanation": "Delivered weight is 0 T greater than declared invoice weight (18 T).",
+    "anomalySeverity": "none",
+    "confidenceBreakdown": {
+      "anpr": 0.45,
+      "weighbridge": 0.95,
+      "invoice": 0.9,
+      "aggregate": 0.745
+    },
+    "possibleCauses": [
+      "ANPR confidence low — vehicle identity uncertain."
+    ],
+    "escalationRecommendation": [
+      "Verification completed. Record findings to delivery ledger."
+    ],
+    "supportingEvidence": [
+      "Weighbridge recorded 18 T with 95% confidence.",
+      "Invoice OCR/document trust score 90%.",
+      "Discrepancy within configured tolerance (± 0.5 T)."
+    ],
+    "conflictingEvidence": [
+      "ANPR confidence low (45%) — vehicle identity uncertain.",
+      "Vehicle plate does not match expected invoice identifier."
+    ],
+    "evidenceGaps": [
+      "No unloading/offloading footage captured.",
+      "No operator log or manual verification record.",
+      "No tare weight or empty weight record."
+    ],
+    "confidenceRationale": "Weighted by source importance: ANPR low (45%); weighbridge high (95%); invoice trusted (90%). Aggregate confidence: 75%.",
+    "eventTimeline": [
+      {
+        "event": "Invoice issued and uploaded to system."
+      },
+      {
+        "event": "Vehicle TN-11-AA-111 entered site and captured by ANPR."
+      },
+      {
+        "event": "Gross weight recorded: 18 T."
+      },
+      {
+        "event": "Material unloading and offloading executed."
+      },
+      {
+        "event": "Tare weight recorded (if applicable)."
+      },
+      {
+        "event": "Quantity comparison executed: declared 18 T, delivered 18 T."
+      },
+      {
+        "event": "Verification report generated."
+      }
+    ],
+    "finding": "Delivery verification detected a NONE severity discrepancy: 0 T more than invoice (0.0% variance). Vehicle TN-11-AA-111 delivered 18 T versus declared 18 T. Aggregate confidence in this finding: 75%. Supporting evidence: 3 items. Conflicting evidence: 2 items.",
+    "riskAssessment": {
+      "operational": "low",
+      "financial": "low",
+      "verificationConfidence": 75
+    },
+    "escalationDecision": {
+      "decision": "monitor",
+      "justification": "Delivery within tolerance. Aggregate confidence 75%. Record to ledger and monitor for patterns."
+    },
+    "metadata": {
+      "vehicle": "TN-11-AA-111",
+      "invoiceId": "INV-410",
+      "deliveredWeight": 18,
+      "declaredWeight": 18,
+      "discrepancy": 0,
+      "unit": "T",
+      "evidenceCount": 3
+    }
+  },
+  "human": "═══════════════════════════════════════════════════════════════\nINFRASTRUCTURE INVESTIGATION REPORT\n═══════════════════════════════════════════════════════════════\n\nEXECUTIVE SUMMARY\n---------------------------------------------------------------\nVehicle TN-11-AA-111 delivered more than invoice by 0 T (declared 18 T, delivered 18 T).\n\nINVESTIGATION FINDING\n---------------------------------------------------------------\nDelivery verification detected a NONE severity discrepancy: 0 T more than invoice (0.0% variance). Vehicle TN-11-AA-111 delivered 18 T versus declared 18 T. Aggregate confidence in this finding: 75%. Supporting evidence: 3 items. Conflicting evidence: 2 items.\n\nVERIFICATION SUMMARY\n---------------------------------------------------------------\nSeverity: NONE\nDiscrepancy: Delivered weight is 0 T greater than declared invoice weight (18 T).\n\nEVIDENCE ANALYSIS\n---------------------------------------------------------------\n\nSupporting Evidence:\n  ✓ Weighbridge recorded 18 T with 95% confidence.\n  ✓ Invoice OCR/document trust score 90%.\n  ✓ Discrepancy within configured tolerance (± 0.5 T).\n\nConflicting Evidence:\n  ✗ ANPR confidence low (45%) — vehicle identity uncertain.\n  ✗ Vehicle plate does not match expected invoice identifier.\n\nEvidence Gaps:\n  ⊘ No unloading/offloading footage captured.\n  ⊘ No operator log or manual verification record.\n  ⊘ No tare weight or empty weight record.\n\nConfidence Rationale:\n  Weighted by source importance: ANPR low (45%); weighbridge high (95%); invoice trusted (90%). Aggregate confidence: 75%.\n\nEVENT TIMELINE\n---------------------------------------------------------------\n  • Invoice issued and uploaded to system.\n  • Vehicle TN-11-AA-111 entered site and captured by ANPR.\n  • Gross weight recorded: 18 T.\n  • Material unloading and offloading executed.\n  • Tare weight recorded (if applicable).\n  • Quantity comparison executed: declared 18 T, delivered 18 T.\n  • Verification report generated.\n\nCONFIDENCE ASSESSMENT\n---------------------------------------------------------------\nANPR: 45.0%\nWeighbridge: 95.0%\nInvoice: 90.0%\nAggregate Confidence: 74.5%\n\nPOSSIBLE CAUSES\n---------------------------------------------------------------\n  • ANPR confidence low — vehicle identity uncertain.\n\nRISK ASSESSMENT\n---------------------------------------------------------------\nOperational Risk: LOW\nFinancial Risk: LOW\nVerification Confidence: 75%\n\nESCALATION DECISION\n---------------------------------------------------------------\nDecision: MONITOR\nJustification: Delivery within tolerance. Aggregate confidence 75%. Record to ledger and monitor for patterns.\n\nRECOMMENDED ACTIONS\n---------------------------------------------------------------\n  • Verification completed. Record findings to delivery ledger.\n\n═══════════════════════════════════════════════════════════════",
+  "checks": [
+    {
+      "name": "severity",
+      "pass": true,
+      "expected": "none",
+      "actual": "none"
+    },
+    {
+      "name": "confidence_aggregate_present",
+      "pass": true,
+      "value": 0.745
+    },
+    {
+      "name": "discrepancy_explanation",
+      "pass": true
+    },
+    {
+      "name": "possible_causes",
+      "pass": true,
+      "count": 1
+    },
+    {
+      "name": "escalation_recommendation",
+      "pass": true
+    },
+    {
+      "name": "anpr_flag",
+      "pass": true,
+      "actual": 0.45
+    }
+  ]
+}
