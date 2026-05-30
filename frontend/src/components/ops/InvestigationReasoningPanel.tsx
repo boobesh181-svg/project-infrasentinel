@@ -14,9 +14,10 @@ type Props = {
 
 const scoreBar = (v: number) => {
   const pct = Math.round(v * 100);
+  const widthClass = pct < 10 ? "w-[10%]" : pct < 20 ? "w-[20%]" : pct < 30 ? "w-[30%]" : pct < 40 ? "w-[40%]" : pct < 50 ? "w-[50%]" : pct < 60 ? "w-[60%]" : pct < 70 ? "w-[70%]" : pct < 80 ? "w-[80%]" : pct < 90 ? "w-[90%]" : "w-full";
   return (
-    <div className="w-full bg-slate-800/30 rounded h-3">
-      <div className={`h-3 rounded bg-emerald-400`} style={{ width: `${pct}%` }} />
+    <div className="w-full overflow-hidden rounded bg-slate-800/30 h-3">
+      <div className={`h-3 rounded bg-emerald-400 ${widthClass}`} />
     </div>
   );
 };
@@ -65,34 +66,31 @@ export default function InvestigationReasoningPanel(props: Props) {
   return (
     <div className={`p-3 ${riskBg} rounded border border-slate-800 text-slate-100 text-sm`}>
       <div className="flex items-center justify-between mb-2">
-        <div className="text-xs uppercase text-slate-400">Infrastructure Investigation</div>
+        <div className="text-xs uppercase text-slate-400">Case reasoning</div>
         <div className="text-xs text-slate-400">Evidence: {report.metadata.evidenceCount}</div>
       </div>
 
-      {/* Investigation Finding (core narrative) */}
-      {report.finding && (
-        <section className="mb-3 p-2 bg-slate-900/50 rounded border border-slate-700">
-          <div className="text-[13px] font-medium text-cyan-300">Investigation Finding</div>
-          <div className="text-sm text-slate-200 mt-1">{report.finding}</div>
-        </section>
-      )}
+      <section className="mb-3 p-2 bg-slate-900/50 rounded border border-slate-700">
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-[13px] font-medium text-cyan-300">Case thesis</div>
+          <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">{report.riskAssessment?.operational || "unknown"}</div>
+        </div>
+        {report.finding && <div className="text-sm text-slate-200 mt-1">{report.finding}</div>}
+      </section>
 
-      {/* Operational Summary */}
       <section className="mb-3">
-        <div className="text-[13px] font-medium">Operational Summary</div>
+        <div className="text-[13px] font-medium">What happened</div>
         <div className="text-sm text-slate-200 mt-1">{report.operationalSummary}</div>
       </section>
 
-      {/* Discrepancy Analysis with Severity */}
       <section className="mb-3">
         <div className="flex items-center justify-between">
-          <div className="text-[13px] font-medium">Discrepancy Analysis</div>
+          <div className="text-[13px] font-medium">Why it matters</div>
           <div className={`px-2 py-0.5 text-xs rounded ${report.anomalySeverity === 'none' ? 'bg-emerald-500 text-black' : report.anomalySeverity === 'minor' ? 'bg-yellow-500 text-black' : report.anomalySeverity === 'moderate' ? 'bg-amber-600' : report.anomalySeverity === 'major' ? 'bg-orange-600' : 'bg-rose-600'}`}>{report.anomalySeverity.toUpperCase()}</div>
         </div>
         <div className="text-slate-300 text-sm mt-1">{report.discrepancyExplanation}</div>
       </section>
 
-      {/* Risk Assessment */}
       {report.riskAssessment && (
         <section className="mb-3 p-2 bg-slate-900/50 rounded">
           <div className="text-[13px] font-medium mb-1">Risk Assessment</div>
@@ -113,9 +111,8 @@ export default function InvestigationReasoningPanel(props: Props) {
         </section>
       )}
 
-      {/* Confidence Assessment */}
       <section className="mb-3">
-        <div className="text-[13px] font-medium mb-1">Evidence Confidence</div>
+        <div className="text-[13px] font-medium mb-1">Evidence confidence</div>
         <div className="grid gap-2">
           <div className="flex items-center justify-between text-xs text-slate-400">
             <div>ANPR</div>
@@ -146,13 +143,12 @@ export default function InvestigationReasoningPanel(props: Props) {
         )}
       </section>
 
-      {/* Evidence Reasoning (collapsible) */}
       <section className="mb-3">
         <button 
           onClick={() => setExpanded(!expanded)}
           className="text-[13px] font-medium text-cyan-400 hover:text-cyan-300 w-full text-left"
         >
-          {expanded ? '▼' : '▶'} Evidence Reasoning ({(report.supportingEvidence?.length || 0) + (report.conflictingEvidence?.length || 0)} items)
+          {expanded ? '▼' : '▶'} Evidence trail ({(report.supportingEvidence?.length || 0) + (report.conflictingEvidence?.length || 0)} items)
         </button>
         {expanded && (
           <div className="mt-2 space-y-2 text-xs">
@@ -246,18 +242,16 @@ export default function InvestigationReasoningPanel(props: Props) {
         )}
       </section>
 
-      {/* Escalation Decision */}
       {report.escalationDecision && (
         <section className="mb-3 p-2 bg-slate-900/50 rounded border border-slate-700">
-          <div className="text-[13px] font-medium mb-1">Escalation Decision</div>
+          <div className="text-[13px] font-medium mb-1">Decision</div>
           <div className="text-sm font-semibold text-cyan-300 uppercase">{report.escalationDecision.decision}</div>
           <div className="text-xs text-slate-300 mt-1">{report.escalationDecision.justification}</div>
         </section>
       )}
 
-      {/* Possible Causes */}
       <section className="mb-3">
-        <div className="text-[13px] font-medium">Possible Causes</div>
+        <div className="text-[13px] font-medium">Possible causes</div>
         <ul className="list-disc ml-4 text-slate-300 mt-1 text-xs">
           {report.possibleCauses.map((p, i) => (
             <li key={i}>{p}</li>
@@ -265,9 +259,8 @@ export default function InvestigationReasoningPanel(props: Props) {
         </ul>
       </section>
 
-      {/* Recommended Actions */}
       <section className="mb-2">
-        <div className="text-[13px] font-medium">Recommended Actions</div>
+        <div className="text-[13px] font-medium">Recommended actions</div>
         <ul className="ml-4 list-none text-slate-300 mt-1 space-y-1 text-xs">
           {report.escalationRecommendation.map((r, i) => (
             <li key={i}>• {r}</li>

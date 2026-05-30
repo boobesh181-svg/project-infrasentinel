@@ -2,11 +2,9 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", to: "/app/dashboard" },
-  { label: "Projects", to: "/app/projects" },
-  { label: "Notifications", to: "/app/notifications" },
-  { label: "Evidence", to: "/app/evidence" },
-  { label: "Audit Logs", to: "/app/audit" }
+  { label: "Command Center", to: "/app/command-center" },
+  { label: "Delivery Ledger", to: "/app/timeline" },
+  { label: "Incident Investigation", to: "/app/replay" }
 ];
 
 const AppLayout = () => {
@@ -23,7 +21,7 @@ const AppLayout = () => {
       <aside className="w-64 bg-white/95 p-6 shadow-soft">
         <div className="mb-8">
           <p className="text-xs uppercase tracking-[0.2em] text-slate">Infrasentinel</p>
-          <h1 className="text-lg font-semibold text-ink">Compliance Console</h1>
+          <h1 className="text-lg font-semibold text-ink">Verification Console</h1>
         </div>
         <nav className="space-y-2 text-sm">
           {NAV_ITEMS.map((item) => (
@@ -48,6 +46,7 @@ const AppLayout = () => {
           <div>
             <p className="text-sm text-slate">Logged in</p>
             <p className="text-sm font-medium text-ink">{token ? "Active session" : "Guest"}</p>
+            <p className="mt-1 text-xs text-slate">Command Center, Delivery Ledger, Incident Investigation</p>
           </div>
           <button
             onClick={handleLogout}

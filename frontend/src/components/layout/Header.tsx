@@ -4,11 +4,6 @@ import { useAuth } from "../../hooks/useAuth";
 import Button from "../ui/Button";
 
 const titleMap: Record<string, string> = {
-  "/app/command-center/site": "Site Queue",
-  "/app/command-center/delivery": "Delivery Review",
-  "/app/command-center/live": "Live Verification",
-  "/app/command-center/weighbridge": "Weighbridge Verification",
-  "/app/command-center/invoices": "Invoice Intake",
   "/app/command-center": "Command Center",
   "/app/timeline": "Delivery Ledger",
   "/app/replay": "Incident Investigation"
@@ -36,7 +31,7 @@ const Header = () => {
             <span>latency nominal</span>
           </div>
           <h1 className="text-[25px] font-semibold tracking-[-0.02em] text-white font-display md:text-[30px]">{pageTitle}</h1>
-          <p className="text-sm text-slate-400">Live operations, historical delivery records, and forensic analysis stay separated by surface.</p>
+          <p className="text-sm text-slate-400">One workflow: verify delivery, record the ledger, reconstruct the dispute.</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 md:flex">

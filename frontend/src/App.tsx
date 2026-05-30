@@ -6,7 +6,6 @@ import { useAuth } from "./hooks/useAuth";
 import CommandCenter from "./pages/CommandCenter";
 import Timeline from "./pages/Timeline";
 import AuditReplay from "./pages/AuditReplay";
-import ForensicDemo from "./pages/ForensicDemo";
 
 const LandingRedirect = () => {
   const { token } = useAuth();
@@ -58,7 +57,6 @@ const App = () => {
         <Route index element={<Navigate to="/app/command-center" replace />} />
         <Route path="command-center" element={<CommandCenter />} />
         <Route path="timeline" element={<Timeline />} />
-        <Route path="forensic-demo" element={<ForensicDemo />} />
         <Route path="replay" element={<AuditReplay />} />
         <Route path="*" element={<CommandCenterRedirect to="/app/command-center" />} />
       </Route>

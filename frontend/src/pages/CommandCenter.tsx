@@ -81,7 +81,7 @@ const buildVerificationSteps = (tick: number): VerificationStep[] => {
 
 const buildWeighbridgeStates = (latest: QueueItem | undefined): WeighbridgeState[] => [
   { label: "Lane 3", value: latest ? "occupied" : "idle", tone: latest ? "text-emerald-100" : "text-slate-300" },
-  { label: "Gross weight", value: latest ? `${(42 + latest.progress / 3).toFixed(1)} t` : "--", tone: "text-cyan-100" },
+  { label: "Gross weight", value: latest ? `${(42 + (latest.progress || 0) / 3).toFixed(1)} t` : "--", tone: "text-cyan-100" },
   { label: "Tare lock", value: latest?.anomaly ? "pending review" : "synced", tone: latest?.anomaly ? "text-rose-100" : "text-emerald-100" },
   { label: "Reconcile state", value: latest ? latest.stage : "standby", tone: "text-white" }
 ];
@@ -99,7 +99,7 @@ const progressWidthClass = (value: number) => {
 const CommandCenter = () => {
   const [events, setEvents] = useState<LiveEvent[]>(() => Array.from({ length: 6 }, makeEvent));
   const [truckQueue, setTruckQueue] = useState<QueueItem[]>(() => Array.from({ length: 5 }, makeQueueItem));
-  const [escalations, setEscalations] = useState<LiveEvent[]>(() => Array.from({ length: 3 }, makeEvent));
+  const [escalations, setEscalations] = useState<QueueItem[]>(() => Array.from({ length: 3 }, makeQueueItem));
   const [operatorInterventions, setOperatorInterventions] = useState<string[]>(() => ["Operator assigned to lane 3", "Weighbridge drift under review", "Invoice sync awaiting sign-off"]);
   const [tick, setTick] = useState(0);
   const [ingestCount, setIngestCount] = useState(0);
@@ -108,18 +108,16 @@ const CommandCenter = () => {
   const pulseRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // Load scenario-based deliveries and seed the queues
     (async () => {
       try {
         const rows = await listLocalDeliveries();
         if (rows && rows.length) {
-          // map rows into QueueItem-like structures
           const q = rows.map((r: any, idx: number) => ({
             id: r.id,
             plate: r.plate || `TRK-${idx}`,
             supplier: r.supplier || 'Unknown',
             material: r.material || 'Aggregate',
-            time: r.time,
+            time: r.time || new Date().toISOString(),
             confidence: Number((r.confidence || 0.85).toFixed(2)),
             anomaly: !!r.anomaly,
             image: `/assets/realistic/truck-arrival-1.jpg`,
@@ -132,11 +130,10 @@ const CommandCenter = () => {
           setEvents(q.slice(0, 6).map((x) => ({ id: x.id, plate: x.plate, supplier: x.supplier, material: x.material, time: x.time, confidence: x.confidence, anomaly: x.anomaly, image: x.image })));
         }
       } catch (e) {
-        // ignore, keep simulated stream
+        // ignore
       }
     })();
 
-    // Simulated live stream that inserts new events and ages the list
     streamRef.current = window.setInterval(() => {
       const next = makeEvent();
       setEvents((prev) => [next, ...prev].slice(0, 12));
