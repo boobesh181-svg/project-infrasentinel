@@ -1,6 +1,7 @@
 import { format } from "date-fns";
-import { Eye, Hash, ShieldCheck, CalendarClock, Camera, MapPin, SunMoon, ShieldAlert } from "lucide-react";
+import { Eye, Hash, ShieldCheck, CalendarClock, Camera, MapPin, SunMoon, ShieldAlert, CheckCircle, Link as LinkIcon } from "lucide-react";
 import Badge from "../ui/Badge";
+import ChainOfCustody from "./ChainOfCustody";
 
 type Props = {
   evidence: any;
@@ -28,6 +29,7 @@ const EvidenceCard = ({ evidence, onOpen }: Props) => {
   const angle = evidence?.camera_angle || "Operational angle";
   const siteName = evidence?.site_name || evidence?.site || "Unknown Site";
   const siteId = evidence?.site_id || evidence?.site_code || "SITE-UNK";
+  const coc = evidence?.chain_of_custody || evidence?.coc || { captured: true, verified: Boolean(evidence?.file_hash), linked: Boolean(evidence?.linked), reviewed: Boolean(evidence?.reviewed) };
 
   return (
     <div className="relative flex w-full items-center gap-3 py-2">
@@ -98,6 +100,17 @@ const EvidenceCard = ({ evidence, onOpen }: Props) => {
             <Badge label={angle} />
             <Badge label={weather} />
           </div>
+        </div>
+        <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-400">
+          <div className="inline-flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 rounded-md border border-white/8 bg-slate-900/30 px-2 py-1 text-[10px] text-slate-300"><CheckCircle className="h-3 w-3 text-emerald-300" />{coc.captured ? 'Captured' : 'Captured — pending'}</span>
+            <span className="inline-flex items-center gap-1 rounded-md border border-white/8 bg-slate-900/30 px-2 py-1 text-[10px] text-slate-300"><CheckCircle className="h-3 w-3 text-emerald-300" />{coc.verified ? 'Verified' : 'Unverified'}</span>
+            <span className="inline-flex items-center gap-1 rounded-md border border-white/8 bg-slate-900/30 px-2 py-1 text-[10px] text-slate-300"><LinkIcon className="h-3 w-3 text-cyan-300" />{coc.linked ? 'Linked' : 'Unlinked'}</span>
+            <span className="inline-flex items-center gap-1 rounded-md border border-white/8 bg-slate-900/30 px-2 py-1 text-[10px] text-slate-300">{coc.reviewed ? 'Reviewed' : 'Not reviewed'}</span>
+          </div>
+        </div>
+        <div className="mt-3">
+          <ChainOfCustody coc={evidence.chain_of_custody || evidence.coc || { captured: true, verified: Boolean(evidence.file_hash), linked: Boolean(evidence.linked), reviewed: Boolean(evidence.reviewed) }} />
         </div>
       </div>
     </div>

@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 import { Camera, FileText, ScanLine, Truck, Video, Waves, MapPin, CalendarClock, ShieldCheck } from "lucide-react";
+import { CheckCircle, Link as LinkIcon, Eye } from "lucide-react";
+import ChainOfCustody from "./ChainOfCustody";
 
 type Props = {
   delivery: any | null;
@@ -105,6 +107,29 @@ const InvestigationEvidenceRail = ({ delivery, selectedEvidenceId, activeEventId
                     {integrity}
                   </span>
                 </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] tracking-[0.12em]">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-md border border-white/6 bg-slate-900/40 px-2 py-1 text-[10px] text-slate-300">
+                      <CheckCircle className="h-3 w-3 text-emerald-300" />
+                      {item.chain_of_custody && item.chain_of_custody.captured ? 'Captured' : 'Captured — pending'}
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-md border border-white/6 bg-slate-900/40 px-2 py-1 text-[10px] text-slate-300">
+                      <CheckCircle className="h-3 w-3 text-emerald-300" />
+                      {item.chain_of_custody && item.chain_of_custody.verified ? 'Verified' : 'Unverified'}
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-md border border-white/6 bg-slate-900/40 px-2 py-1 text-[10px] text-slate-300">
+                      <LinkIcon className="h-3 w-3 text-cyan-300" />
+                      {item.chain_of_custody && item.chain_of_custody.linked ? 'Linked' : 'Unlinked'}
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-md border border-white/6 bg-slate-900/40 px-2 py-1 text-[10px] text-slate-300">
+                      <Eye className="h-3 w-3 text-amber-300" />
+                      {item.chain_of_custody && item.chain_of_custody.reviewed ? 'Reviewed' : 'Not reviewed'}
+                    </span>
+                  </div>
+                </div>
+                  <div className="mt-3">
+                    <ChainOfCustody coc={item.chain_of_custody || item.coc || { captured: true, verified: Boolean(item.file_hash), linked: Boolean(item.linked), reviewed: Boolean(item.reviewed), captured_at: item.timestamp }} />
+                  </div>
               </button>
             );
           })
@@ -129,9 +154,19 @@ const InvestigationEvidenceRail = ({ delivery, selectedEvidenceId, activeEventId
             <div className="space-y-1 text-xs text-slate-300">
               <p className="truncate text-white">{selectedEvidence.file_name}</p>
               <p>Hash: {selectedEvidence.file_hash || "—"}</p>
-              <p>Uploaded: {selectedEvidence.uploaded_at || "—"}</p>
-              <p>Camera: {selectedEvidence.camera_id || "—"} · {selectedEvidence.camera_angle || "Operational angle"}</p>
-              <p>Location: {selectedEvidence.site_id || "—"} · {selectedEvidence.site_name || "Unknown Site"}</p>
+              <p>Uploaded: {selectedEvidence.uploaded_at || selectedEvidence.timestamp || "—"}</p>
+              <p>Camera: {selectedEvidence.camera_id || "—"} · {selectedEvidence.capture_device || selectedEvidence.camera_model || "Operational angle"}</p>
+              <p>Location: {selectedEvidence.site_id || "—"} · {selectedEvidence.site_name || "Unknown Site"} {selectedEvidence.gps ? `· ${selectedEvidence.gps.lat.toFixed(5)}, ${selectedEvidence.gps.lon.toFixed(5)}` : ''}</p>
+              <p>Integrity: {selectedEvidence.integrity_status || selectedEvidence.integrity || 'UNKNOWN'}</p>
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-[11px] text-slate-400">Chain-of-custody:</span>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 rounded-md border border-white/8 bg-slate-900/30 px-2 py-1 text-[10px] text-slate-300">{selectedEvidence.chain_of_custody && selectedEvidence.chain_of_custody.captured ? 'Captured' : 'Captured — pending'}</span>
+                  <span className="inline-flex items-center gap-1 rounded-md border border-white/8 bg-slate-900/30 px-2 py-1 text-[10px] text-slate-300">{selectedEvidence.chain_of_custody && selectedEvidence.chain_of_custody.verified ? 'Verified' : 'Unverified'}</span>
+                  <span className="inline-flex items-center gap-1 rounded-md border border-white/8 bg-slate-900/30 px-2 py-1 text-[10px] text-slate-300">{selectedEvidence.chain_of_custody && selectedEvidence.chain_of_custody.linked ? 'Linked' : 'Unlinked'}</span>
+                  <span className="inline-flex items-center gap-1 rounded-md border border-white/8 bg-slate-900/30 px-2 py-1 text-[10px] text-slate-300">{selectedEvidence.chain_of_custody && selectedEvidence.chain_of_custody.reviewed ? 'Reviewed' : 'Not reviewed'}</span>
+                </div>
+              </div>
             </div>
             <button type="button" onClick={() => onOpenEvidence(selectedEvidence)} className="w-full border border-cyan-400/25 bg-cyan-500/10 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-cyan-100">
               Open evidence

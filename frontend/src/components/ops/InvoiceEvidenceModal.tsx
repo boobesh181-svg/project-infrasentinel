@@ -1,5 +1,6 @@
 import { FileImage, FileText, X, CalendarClock, MapPin, Camera, ShieldCheck } from "lucide-react";
 import Badge from "../ui/Badge";
+import ChainOfCustody from "./ChainOfCustody";
 
 type Props = {
   open: boolean;
@@ -101,6 +102,12 @@ const InvoiceEvidenceModal = ({ open, invoice, previewUrl, onClose }: Props) => 
                   Capture / review
                 </p>
                 <p className="mt-2 text-slate-100">{invoice.uploaded_at ? new Date(invoice.uploaded_at).toLocaleString() : "—"}</p>
+              </div>
+              <div className="border border-white/10 bg-white/4 p-3">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Chain of custody</p>
+                <div className="mt-2">
+                  <ChainOfCustody coc={invoice.chain_of_custody || invoice.coc || { captured: true, verified: Boolean(invoice.file_hash), linked: true, reviewed: Boolean(invoice.reviewed), captured_at: invoice.uploaded_at }} />
+                </div>
               </div>
             </div>
           </div>

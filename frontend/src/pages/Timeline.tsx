@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, ChevronDown, ChevronUp, CircleDot, Clock3, FileImage, FileText, GitBranch, Hash, Search, ShieldAlert, Truck } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronUp, CircleDot, Clock3, FileImage, FileText, GitBranch, Hash, Search, ShieldAlert, Truck, ShieldCheck } from "lucide-react";
+import EvidenceCard from "../components/ops/EvidenceCard";
 import { format } from "date-fns";
 import OperationsLayout from "../components/layout/OperationsLayout";
 import { listLocalDeliveries } from "../api/ops";
 
-type LedgerFilter = "verified" | "flagged" | "missing" | "open";
+type LedgerFilter = "verified" | "review" | "discrepancy" | "missing" | "open";
+
+type VerificationStatus = "VERIFIED" | "UNDER REVIEW" | "DISCREPANCY DETECTED";
 
 type LedgerRow = {
   id: string;
@@ -22,6 +25,8 @@ type LedgerRow = {
   evidence: string[];
   evidenceCount: number;
   videoCount: number;
+  imageCount: number;
+  documentCount: number;
   anomalyCount: number;
   site: string;
 };
@@ -34,7 +39,8 @@ type DayGroup = {
 
 const FILTERS: Array<{ key: LedgerFilter; label: string }> = [
   { key: "verified", label: "Verified" },
-  { key: "flagged", label: "Flagged" },
+  { key: "review", label: "Under Review" },
+  { key: "discrepancy", label: "Discrepancy Detected" },
   { key: "missing", label: "Missing Evidence" },
   { key: "open", label: "Open Investigation" }
 ];
@@ -48,29 +54,36 @@ const placeholderByEvidence: Record<string, string> = {
   video: "/assets/realistic/truck-arrival-1.jpg"
 };
 
-const statusTone = (state: string, anomaly: boolean) => {
-  if (state === "VERIFIED") return "border-emerald-400/20 bg-emerald-500/10 text-emerald-100";
-  if (anomaly || state.includes("FLAGGED") || state.includes("MISMATCH")) return "border-rose-400/20 bg-rose-500/10 text-rose-100";
-  return "border-amber-400/20 bg-amber-500/10 text-amber-100";
+const statusTone = (status: VerificationStatus) => {
+  if (status === "VERIFIED") return "border-emerald-400/25 bg-emerald-500/15 text-emerald-100";
+  if (status === "DISCREPANCY DETECTED") return "border-rose-400/25 bg-rose-500/15 text-rose-100";
+  return "border-amber-400/25 bg-amber-500/15 text-amber-100";
 };
 
-const verificationCompletion = (row: LedgerRow) => {
+const verificationStatus = (row: LedgerRow): VerificationStatus => {
+  if (row.state === "VERIFIED") return "VERIFIED";
+  if (row.anomaly || row.state.includes("FLAGGED") || row.state.includes("MISMATCH")) return "DISCREPANCY DETECTED";
+  return "UNDER REVIEW";
+};
+
+const evidenceCompletionScore = (row: LedgerRow) => {
   if (row.state === "VERIFIED") return 100;
-  if (row.anomaly) return 70;
-  if (row.evidenceCount >= 4) return 85;
-  if (row.evidenceCount >= 2) return 60;
-  return 30;
+  if (row.evidenceCount >= 5) return 85;
+  if (row.evidenceCount >= 4) return 65;
+  return 40;
 };
 
-const evidenceAvailability = (row: LedgerRow) => {
-  if (row.evidenceCount >= 4 && row.videoCount >= 1) return "Full chain";
-  if (row.evidenceCount >= 2) return "Partial chain";
+const evidenceAvailability = (score: number) => {
+  if (score >= 90) return "Full chain";
+  if (score >= 75) return "Substantial chain";
+  if (score >= 60) return "Partial chain";
   return "Sparse chain";
 };
 
 const chainStatus = (row: LedgerRow) => {
-  if (row.state === "VERIFIED") return "Verified chain";
-  if (row.anomaly) return "Needs review";
+  const status = verificationStatus(row);
+  if (status === "VERIFIED") return "Verified chain";
+  if (status === "DISCREPANCY DETECTED") return "Needs review";
   return "In progress";
 };
 
@@ -91,6 +104,8 @@ const normalizeRows = (rows: any[]): LedgerRow[] =>
       evidence: Array.isArray(row.evidence) ? row.evidence : [],
       evidenceCount: Number(row.evidenceCount || 0),
       videoCount: Number(row.videoCount || 0),
+      imageCount: Number(row.imageCount || 0),
+      documentCount: Number(row.documentCount || 0),
       anomalyCount: Number(row.anomalyCount || 0),
       site: row.site || "SITE-UNKNOWN"
     }))
@@ -121,13 +136,15 @@ const Timeline = () => {
         activeFilters.every((filter) => {
           switch (filter) {
             case "verified":
-              return row.state === "VERIFIED";
-            case "flagged":
-              return row.anomaly || row.state.includes("FLAGGED") || row.state.includes("MISMATCH");
+              return verificationStatus(row) === "VERIFIED";
+            case "review":
+              return verificationStatus(row) === "UNDER REVIEW";
+            case "discrepancy":
+              return verificationStatus(row) === "DISCREPANCY DETECTED";
             case "missing":
-              return evidenceAvailability(row) === "Sparse chain";
+              return evidenceCompletionScore(row) < 70;
             case "open":
-              return row.anomaly || row.state !== "VERIFIED";
+              return verificationStatus(row) !== "VERIFIED";
             default:
               return true;
           }
@@ -148,17 +165,28 @@ const Timeline = () => {
       .map(([key, groupRows]) => ({
         key,
         label: format(new Date(groupRows[0].time), "dd LLL yyyy").toUpperCase(),
-        rows: groupRows.sort((left, right) => new Date(left.time).getTime() - new Date(right.time).getTime())
+        rows: groupRows.sort((left, right) => {
+          const severity = (row: LedgerRow) => {
+            const status = verificationStatus(row);
+            if (status === "DISCREPANCY DETECTED") return 0;
+            if (status === "UNDER REVIEW") return 1;
+            return 2;
+          };
+
+          const diff = severity(left) - severity(right);
+          if (diff !== 0) return diff;
+          return new Date(right.time).getTime() - new Date(left.time).getTime();
+        })
       }))
-      .sort((left, right) => left.key.localeCompare(right.key));
+      .sort((left, right) => right.key.localeCompare(left.key));
   }, [filteredRows]);
 
   const totals = useMemo(() => {
-    const verified = rows.filter((row) => row.state === "VERIFIED").length;
-    const flagged = rows.filter((row) => row.anomaly || row.state.includes("FLAGGED") || row.state.includes("MISMATCH")).length;
-    const missingEvidence = rows.filter((row) => evidenceAvailability(row) === "Sparse chain").length;
-    const openInvestigations = rows.filter((row) => row.anomaly || row.state !== "VERIFIED").length;
-    return { verified, flagged, missingEvidence, openInvestigations };
+    const verified = rows.filter((row) => verificationStatus(row) === "VERIFIED").length;
+    const underReview = rows.filter((row) => verificationStatus(row) === "UNDER REVIEW").length;
+    const discrepancy = rows.filter((row) => verificationStatus(row) === "DISCREPANCY DETECTED").length;
+    const missingEvidence = rows.filter((row) => evidenceCompletionScore(row) < 70).length;
+    return { verified, underReview, discrepancy, missingEvidence };
   }, [rows]);
 
   const toggleFilter = (filter: LedgerFilter) => {
@@ -177,18 +205,18 @@ const Timeline = () => {
             <div className="max-w-3xl space-y-2">
               <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-slate-400">
                 <Clock3 className="h-4 w-4 text-cyan-300" />
-                historical delivery memory
-                <span className="border border-white/10 bg-white/4 px-3 py-1 text-slate-300">what happened</span>
+                audit-grade operational memory
+                <span className="border border-white/10 bg-white/4 px-3 py-1 text-slate-300">problem rows surface first</span>
               </div>
               <h1 className="font-display text-2xl font-semibold tracking-[-0.03em] text-white md:text-4xl">Delivery Ledger</h1>
-              <p className="max-w-3xl text-sm leading-6 text-slate-300 md:text-base">Chronological memory of every verified delivery, evidence trail, anomaly marker, and investigation handoff.</p>
+              <p className="max-w-3xl text-sm leading-6 text-slate-300 md:text-base">An auditor should identify the deliveries that need attention within seconds: verification status, evidence completeness, media counts, and the investigate path are visible on every row.</p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {[
                 { label: "Verified", value: totals.verified, tone: "text-emerald-100" },
-                { label: "Flagged", value: totals.flagged, tone: "text-rose-100" },
-                { label: "Missing evidence", value: totals.missingEvidence, tone: "text-amber-100" },
-                { label: "Open investigations", value: totals.openInvestigations, tone: "text-cyan-100" }
+                { label: "Under review", value: totals.underReview, tone: "text-amber-100" },
+                { label: "Discrepancy detected", value: totals.discrepancy, tone: "text-rose-100" },
+                { label: "Missing evidence", value: totals.missingEvidence, tone: "text-cyan-100" }
               ].map((card) => (
                 <div key={card.label} className="border border-white/10 bg-slate-950/70 p-3">
                   <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">{card.label}</p>
@@ -259,58 +287,66 @@ const Timeline = () => {
               <div className="space-y-2 px-1 py-2">
                 {group.rows.map((row) => {
                   const expanded = Boolean(expandedIds[row.id]);
-                  const completion = verificationCompletion(row);
-                  const availability = evidenceAvailability(row);
-                  const hasInvestigation = row.anomaly || row.state !== "VERIFIED";
+                  const status = verificationStatus(row);
+                  const completion = evidenceCompletionScore(row);
+                  const availability = evidenceAvailability(completion);
+                  const hasInvestigation = status !== "VERIFIED";
                   const chain = chainStatus(row);
 
                   return (
-                    <article key={row.id} className="border border-white/10 bg-slate-950/60 px-3 py-2.5 transition hover:border-cyan-400/20">
+                    <article key={row.id} className={`border border-white/10 bg-slate-950/60 px-3 py-2.5 transition hover:border-cyan-400/20 border-l-4 ${status === "VERIFIED" ? "border-l-emerald-400/60" : status === "UNDER REVIEW" ? "border-l-amber-400/60" : "border-l-rose-400/60"}`}>
                       <button type="button" onClick={() => toggleExpanded(row.id)} className="flex w-full items-start gap-3 text-left">
-                        <div className="flex w-20 shrink-0 flex-col pt-0.5 text-xs text-slate-400">
-                          <span>{format(new Date(row.time), "HH:mm")}</span>
-                          <span className={`mt-1 text-[11px] ${row.anomaly ? "text-rose-200" : "text-emerald-200"}`}>{row.anomaly ? "FLAGGED" : row.state}</span>
+                        <div className="flex w-24 shrink-0 flex-col pt-0.5 text-xs text-slate-400">
+                          <span className="text-[10px] uppercase tracking-[0.18em] text-slate-500">Timestamp</span>
+                          <span className="mt-1 text-sm text-white">{format(new Date(row.time), "HH:mm")}</span>
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <div className="grid gap-2 lg:grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_auto]">
-                            <div>
-                              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Site</p>
-                              <p className="mt-1 truncate text-sm text-white">{row.site}</p>
+                          <div className="grid gap-3 lg:grid-cols-[1.1fr_1fr_0.9fr_auto] lg:items-center">
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              <div>
+                                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Site</p>
+                                <p className="mt-1 truncate text-sm text-white">{row.site}</p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Supplier</p>
+                                <p className="mt-1 truncate text-sm text-white">{row.supplier}</p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Truck Number</p>
+                                <p className="mt-1 truncate text-sm text-white">{row.plate}</p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Invoice Number</p>
+                                <p className="mt-1 truncate text-sm text-white">{row.invoice}</p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Truck</p>
-                              <p className="mt-1 truncate text-sm text-white">{row.plate}</p>
+
+                            <div className="rounded-2xl border border-white/10 bg-slate-950/75 px-4 py-4">
+                              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Verification Status</p>
+                              <span className={`mt-2 inline-flex rounded-2xl border px-4 py-3 text-[13px] font-semibold tracking-[0.24em] ${statusTone(status)}`}>
+                                {status}
+                              </span>
+                              <div className="mt-3 flex items-center gap-2 text-xs text-slate-400">
+                                <ShieldAlert className={`h-4 w-4 ${status === "VERIFIED" ? "text-emerald-300" : status === "UNDER REVIEW" ? "text-amber-300" : "text-rose-300"}`} />
+                                {status === "VERIFIED" ? "Closed for audit retrieval." : status === "UNDER REVIEW" ? "Evidence is incomplete or pending confirmation." : "Exception requires immediate review."}
+                              </div>
                             </div>
-                            <div>
-                              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Invoice</p>
-                              <p className="mt-1 truncate text-sm text-white">{row.invoice}</p>
+
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              <div className="rounded-xl border border-white/8 bg-white/4 px-3 py-2">
+                                <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">Evidence completeness score</p>
+                                <p className="mt-1 text-2xl font-semibold text-white">{completion}%</p>
+                                <p className="mt-1 text-xs text-slate-400">{availability}</p>
+                              </div>
+                              <div className="rounded-xl border border-white/8 bg-white/4 px-3 py-2">
+                                <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">Evidence media</p>
+                                <p className="mt-1 text-sm text-white">{row.videoCount} videos</p>
+                                <p className="mt-1 text-xs text-slate-400">{row.imageCount} images · {row.documentCount} documents</p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Verification</p>
-                              <span className={`mt-1 inline-flex rounded-full border px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] ${statusTone(row.state, row.anomaly)}`}>{row.state}</span>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Anomaly</p>
-                              <p className={`mt-1 text-sm ${row.anomaly ? "text-rose-100" : "text-slate-300"}`}>{row.anomaly ? "Present" : "None"}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Evidence</p>
-                              <p className="mt-1 text-sm text-white">{row.evidenceCount}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Videos</p>
-                              <p className="mt-1 text-sm text-slate-300">{row.videoCount}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Investigation</p>
-                              <p className={`mt-1 text-sm ${hasInvestigation ? "text-cyan-100" : "text-slate-300"}`}>{hasInvestigation ? "Available" : "Closed"}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Completion</p>
-                              <p className="mt-1 text-sm text-white">{completion}%</p>
-                            </div>
-                            <div className="flex items-center justify-end pt-4">
+
+                            <div className="flex items-start justify-end pt-2">
                               {expanded ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
                             </div>
                           </div>
@@ -335,14 +371,31 @@ const Timeline = () => {
                           </div>
                         </div>
                       </button>
-
+                      
                       {expanded && (
                         <div className="mt-3 border-t border-white/8 pt-3">
                           <div className="grid gap-3 xl:grid-cols-[1fr_1fr_1fr_1fr]">
-                            <EvidencePanel title="Arrival Evidence" icon={<Truck className="h-4 w-4 text-cyan-300" />} asset={placeholderByEvidence.arrival} summary={`Truck ${row.plate} entered ${row.site} at ${format(new Date(row.time), "HH:mm")}.`} detail={`${row.evidenceCount} evidence item(s) attached.`} />
-                            <EvidencePanel title="ANPR Evidence" icon={<CircleDot className="h-4 w-4 text-cyan-300" />} asset={placeholderByEvidence.anpr} summary={`Plate read: ${row.plate}.`} detail={row.state === "VERIFIED" ? "Vehicle identity confirmed." : "Vehicle identity requires review."} />
+                            <div className="border border-white/8 bg-slate-950/70 p-3">
+                              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Attached evidence</div>
+                              <div className="mt-3 space-y-2">
+                                {(row as any).evidenceDetails && (row as any).evidenceDetails.length ? (
+                                  (row as any).evidenceDetails.map((ev: any) => (
+                                    <EvidenceCard key={ev.id || ev.file_name} evidence={ev} onOpen={() => {}} />
+                                  ))
+                                ) : (
+                                  <div className="text-sm text-slate-400">No evidence metadata available.</div>
+                                )}
+                              </div>
+                            </div>
                             <EvidencePanel title="Invoice Summary" icon={<FileText className="h-4 w-4 text-cyan-300" />} asset={placeholderByEvidence.invoice} summary={`Invoice reference: ${row.invoice}.`} detail={`Expected quantity: ${row.expected.toFixed(1)}T.`} />
                             <EvidencePanel title="Weighbridge Summary" icon={<Hash className="h-4 w-4 text-cyan-300" />} asset={placeholderByEvidence.weighbridge} summary={`Delivered quantity: ${row.tons.toFixed(1)}T.`} detail={row.anomaly ? "Quantity deviation detected." : "Within expected operating range."} />
+                            <div className="border border-white/8 bg-slate-950/70 p-3">
+                              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Integrity</div>
+                              <div className="mt-3 flex items-center gap-2 text-sm text-slate-200">
+                                <ShieldCheck className="h-5 w-5 text-emerald-300" />
+                                <div>{(row as any).evidenceDetails && (row as any).evidenceDetails.some((e: any) => e.integrity_status === 'VERIFIED') ? 'Verified evidence present' : 'No verified hash present'}</div>
+                              </div>
+                            </div>
                           </div>
 
                           <div className="mt-3 grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
@@ -377,7 +430,7 @@ const Timeline = () => {
                                   <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Investigate Action</p>
                                   <p className="mt-1 text-sm text-white">Open the incident workspace with this delivery selected.</p>
                                 </div>
-                                <Link to={`/app/replay?delivery_id=${row.id}`} className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-2 text-xs uppercase tracking-[0.18em] text-cyan-100">
+                                <Link to={`/app/replay?delivery_id=${row.id}&focus=anomaly`} className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-2 text-xs uppercase tracking-[0.18em] text-cyan-100">
                                   Investigate
                                   <ArrowRight className="h-4 w-4" />
                                 </Link>
@@ -386,6 +439,8 @@ const Timeline = () => {
                                 <div className="rounded-xl border border-white/8 bg-white/4 px-3 py-2">Chain status: {chain}</div>
                                 <div className="rounded-xl border border-white/8 bg-white/4 px-3 py-2">Evidence count: {row.evidenceCount}</div>
                                 <div className="rounded-xl border border-white/8 bg-white/4 px-3 py-2">Video count: {row.videoCount}</div>
+                                <div className="rounded-xl border border-white/8 bg-white/4 px-3 py-2">Image count: {row.imageCount}</div>
+                                <div className="rounded-xl border border-white/8 bg-white/4 px-3 py-2">Document count: {row.documentCount}</div>
                                 <div className="rounded-xl border border-white/8 bg-white/4 px-3 py-2">Completion: {completion}%</div>
                               </div>
                             </div>

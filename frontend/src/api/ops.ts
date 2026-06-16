@@ -22,13 +22,46 @@ export async function getDelivery(id: string) {
   } catch (err) {
     // fallback to local generated scenarios
     if (!id) throw err;
-    if (id === "verified_delivery") return verified_delivery;
-    if (id === "quantity_discrepancy") return quantity_discrepancy;
-    if (id === "incomplete_evidence") return incomplete_evidence;
+    // Normalize evidence items to include GPS, capture device, integrity and chain-of-custody
+    const normalize = (s: any) => {
+      const clone = JSON.parse(JSON.stringify(s));
+      clone.evidence = (clone.evidence || []).map((e: any, idx: number) => {
+        const file_hash = e.hash || e.file_hash || e.fileHash || (e.checksum || null);
+        const camera_id = e.camera_id || e.cameraId || e.camera || null;
+        const site_id = e.site_id || e.siteId || e.site || clone.siteId || clone.site || 'SITE-UNKNOWN';
+        const timestamp = e.timestamp || e.uploaded_at || new Date().toISOString();
+        const capture_device = e.capture_device || e.device || e.camera_model || (camera_id ? `Camera ${camera_id}` : 'Unknown device');
+        const gps = e.gps || e.location || (site_id ? { lat: -33.0 + (idx * 0.001), lon: 151.0 + (idx * 0.001) } : null);
+        const integrity_status = e.integrity_status || (file_hash ? 'VERIFIED' : 'UNVERIFIED');
+        const coc = e.coc || e.chain_of_custody || {
+          captured: true,
+          verified: Boolean(file_hash),
+          linked: true,
+          reviewed: false,
+          captured_at: timestamp
+        };
+        return {
+          ...e,
+          file_hash: file_hash,
+          camera_id,
+          site_id,
+          timestamp,
+          capture_device,
+          gps,
+          integrity_status,
+          chain_of_custody: coc
+        };
+      });
+      return clone;
+    };
+
+    if (id === "verified_delivery") return normalize(verified_delivery);
+    if (id === "quantity_discrepancy") return normalize(quantity_discrepancy);
+    if (id === "incomplete_evidence") return normalize(incomplete_evidence);
     // If id looks like a composite (e.g., date-index), try to return one of the scenarios by partial match
-    if (id.includes("verified")) return verified_delivery;
-    if (id.includes("quantity")) return quantity_discrepancy;
-    if (id.includes("incomplete")) return incomplete_evidence;
+    if (id.includes("verified")) return normalize(verified_delivery);
+    if (id.includes("quantity")) return normalize(quantity_discrepancy);
+    if (id.includes("incomplete")) return normalize(incomplete_evidence);
     throw err;
   }
 }
@@ -41,7 +74,41 @@ export async function listLocalDeliveries() {
     const invoice = (s.evidence || []).find((e: any) => e.type === 'invoice')?.invoice || s.invoice || {};
     const anpr = (s.evidence || []).find((e: any) => e.type === 'anpr')?.anpr || {};
     const wb = (s.evidence || []).find((e: any) => e.type === 'weighbridge')?.weighbridge || {};
-    const videoCount = (s.evidence || []).filter((e: any) => e.fileName).length;
+    const mediaEvidence = s.evidence || [];
+    // normalize evidence items for ledger/detail views
+    const evidenceDetails = (mediaEvidence || []).map((e: any, idx: number) => {
+      const file_hash = e.hash || e.file_hash || e.fileHash || (e.checksum || null);
+      const camera_id = e.camera_id || e.cameraId || e.camera || null;
+      const site_id = e.site_id || e.siteId || e.site || s.siteId || s.site || 'SITE-UNKNOWN';
+      const timestamp = e.timestamp || e.uploaded_at || new Date().toISOString();
+      const capture_device = e.capture_device || e.device || e.camera_model || (camera_id ? `Camera ${camera_id}` : 'Unknown device');
+      const gps = e.gps || e.location || (site_id ? { lat: -33.0 + (idx * 0.001), lon: 151.0 + (idx * 0.001) } : null);
+      const integrity_status = e.integrity_status || (file_hash ? 'VERIFIED' : 'UNVERIFIED');
+      const coc = e.coc || e.chain_of_custody || {
+        captured: true,
+        verified: Boolean(file_hash),
+        linked: true,
+        reviewed: false,
+        captured_at: timestamp
+      };
+      const content_type = e.content_type || e.file_type || (String(e.fileName || e.file_name || '').toLowerCase().endsWith('.mp4') ? 'video/mp4' : 'image/jpeg');
+      return {
+        ...e,
+        file_hash,
+        camera_id,
+        site_id,
+        timestamp,
+        capture_device,
+        gps,
+        integrity_status,
+        chain_of_custody: coc,
+        content_type,
+        file_name: e.file_name || e.fileName || e.id
+      };
+    });
+    const videoCount = mediaEvidence.filter((e: any) => typeof e.fileName === 'string' && e.fileName.toLowerCase().endsWith('.mp4')).length;
+    const imageCount = mediaEvidence.filter((e: any) => typeof e.fileName === 'string' && /\.(png|jpe?g|webp|gif)$/i.test(e.fileName)).length;
+    const documentCount = mediaEvidence.filter((e: any) => e.type === 'invoice' || e.type === 'document').length;
     const anomaly = s.report && s.report.anomalySeverity && s.report.anomalySeverity !== 'none';
     return {
       id: s.id,
@@ -56,8 +123,11 @@ export async function listLocalDeliveries() {
       anomaly: anomaly,
       invoice: invoice && invoice.id ? invoice.id : (s.id + '-INV'),
       evidence: (s.evidence || []).map((e: any) => e.type || (e.fileName ? 'video' : 'evidence')),
+      evidenceDetails,
       evidenceCount: (s.evidence || []).length,
       videoCount,
+      imageCount,
+      documentCount,
       anomalyCount: anomaly ? 1 : 0,
       site: firstEv.siteId || 'SITE-UNKNOWN'
     };

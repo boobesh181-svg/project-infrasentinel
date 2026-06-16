@@ -1,4 +1,5 @@
 import {
+  ArrowRight,
   LayoutDashboard,
   Radar,
   Scale,
@@ -10,7 +11,8 @@ import { NavLink } from "react-router-dom";
 const navItems = [
   { to: "/app/command-center", label: "Command Center", icon: LayoutDashboard },
   { to: "/app/timeline", label: "Delivery Ledger", icon: Radar },
-  { to: "/app/replay", label: "Incident Investigation", icon: Shield }
+  { to: "/app/replay", label: "Incident Investigation", icon: Shield },
+  { to: "/app/how-it-works", label: "How InfraSentinel Works", icon: ArrowRight }
 ];
 
 const Sidebar = () => {

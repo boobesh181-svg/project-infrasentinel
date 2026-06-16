@@ -6,7 +6,8 @@ import Button from "../ui/Button";
 const titleMap: Record<string, string> = {
   "/app/command-center": "Command Center",
   "/app/timeline": "Delivery Ledger",
-  "/app/replay": "Incident Investigation"
+  "/app/replay": "Incident Investigation",
+  "/app/how-it-works": "How InfraSentinel Works"
 };
 
 const Header = () => {

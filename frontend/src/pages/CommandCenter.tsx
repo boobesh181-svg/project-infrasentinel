@@ -18,6 +18,7 @@ type LiveEvent = {
   material: string;
   time: string;
   confidence: number;
+  volumeTons: number;
   anomaly?: boolean;
   image: string;
 };
@@ -40,10 +41,24 @@ type WeighbridgeState = {
   tone: string;
 };
 
+type WorkflowStep = {
+  label: string;
+  detail: string;
+};
+
+const WORKFLOW: WorkflowStep[] = [
+  { label: "Truck Arrival", detail: "Arrival captured" },
+  { label: "ANPR Capture", detail: "Plate matched" },
+  { label: "Weighbridge Verification", detail: "Weights confirmed" },
+  { label: "Material Verification", detail: "Material checked" },
+  { label: "Invoice Reconciliation", detail: "Quantity matched" },
+  { label: "Verified Record", detail: "Delivery closed" }
+];
+
 const randomPlate = () => `TRK-${Math.floor(1000 + Math.random() * 9000)}`;
 const randomSupplier = () => ["Acme", "NorthCo", "Pioneer", "Harbor Ltd."][Math.floor(Math.random() * 4)];
 const randomMaterial = () => ["Gravel", "Sand", "Aggregate", "Soil"][Math.floor(Math.random() * 4)];
-const randomStage = () => ["Gate check", "ANPR match", "Weighbridge", "Invoice sync", "Operator review"][Math.floor(Math.random() * 5)];
+const randomStage = () => WORKFLOW[Math.floor(Math.random() * WORKFLOW.length)].label;
 
 const makeEvent = (): LiveEvent => ({
   id: String(Date.now() + Math.floor(Math.random() * 1000)),
@@ -52,6 +67,7 @@ const makeEvent = (): LiveEvent => ({
   material: randomMaterial(),
   time: new Date().toISOString(),
   confidence: Number((0.5 + Math.random() * 0.5).toFixed(2)),
+  volumeTons: Number((18 + Math.random() * 14).toFixed(1)),
   anomaly: Math.random() > 0.88,
   image: `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/160/100`
 });
@@ -67,10 +83,10 @@ const makeQueueItem = (): QueueItem => {
 };
 
 const buildVerificationSteps = (tick: number): VerificationStep[] => {
-  const steps = ["Gate check", "ANPR match", "Weighbridge capture", "Invoice reconciliation", "Operator sign-off"];
+  const steps = WORKFLOW.map((step) => step.label);
   return steps.map((label, index) => {
-    const completed = tick % 5 > index;
-    const active = tick % 5 === index;
+    const completed = tick % WORKFLOW.length > index;
+    const active = tick % WORKFLOW.length === index;
     return {
       label,
       state: completed ? "complete" : active ? "active" : "queued",
@@ -83,7 +99,7 @@ const buildWeighbridgeStates = (latest: QueueItem | undefined): WeighbridgeState
   { label: "Lane 3", value: latest ? "occupied" : "idle", tone: latest ? "text-emerald-100" : "text-slate-300" },
   { label: "Gross weight", value: latest ? `${(42 + (latest.progress || 0) / 3).toFixed(1)} t` : "--", tone: "text-cyan-100" },
   { label: "Tare lock", value: latest?.anomaly ? "pending review" : "synced", tone: latest?.anomaly ? "text-rose-100" : "text-emerald-100" },
-  { label: "Reconcile state", value: latest ? latest.stage : "standby", tone: "text-white" }
+  { label: "Workflow state", value: latest ? latest.stage : "standby", tone: "text-white" }
 ];
 
 const progressWidthClass = (value: number) => {
@@ -119,6 +135,7 @@ const CommandCenter = () => {
             material: r.material || 'Aggregate',
             time: r.time || new Date().toISOString(),
             confidence: Number((r.confidence || 0.85).toFixed(2)),
+            volumeTons: Number(Number(r.volumeTons ?? r.quantity ?? 18 + idx * 2).toFixed(1)),
             anomaly: !!r.anomaly,
             image: `/assets/realistic/truck-arrival-1.jpg`,
             stage: r.state || 'Processing',
@@ -127,7 +144,7 @@ const CommandCenter = () => {
           }));
           setTruckQueue(q);
           setEscalations(q.filter((x) => x.anomaly).slice(0, 4));
-          setEvents(q.slice(0, 6).map((x) => ({ id: x.id, plate: x.plate, supplier: x.supplier, material: x.material, time: x.time, confidence: x.confidence, anomaly: x.anomaly, image: x.image })));
+          setEvents(q.slice(0, 6).map((x) => ({ id: x.id, plate: x.plate, supplier: x.supplier, material: x.material, time: x.time, confidence: x.confidence, volumeTons: x.volumeTons, anomaly: x.anomaly, image: x.image })));
         }
       } catch (e) {
         // ignore
@@ -156,21 +173,25 @@ const CommandCenter = () => {
   }, []);
 
   const anomalyCount = useMemo(() => events.filter((e) => e.anomaly).length, [events]);
-  const reviewCount = useMemo(() => Math.max(0, events.length - anomalyCount - 2), [events.length, anomalyCount]);
+  const reviewCount = useMemo(() => Math.max(0, events.length - anomalyCount), [events.length, anomalyCount]);
   const latestEvent = events[0];
   const activeQueueItem = truckQueue[0];
   const verificationSteps = useMemo(() => buildVerificationSteps(tick), [tick]);
   const weighbridgeStates = useMemo(() => buildWeighbridgeStates(activeQueueItem), [activeQueueItem]);
   const activeInvestigationQueue = useMemo(() => truckQueue.slice(0, 4), [truckQueue]);
+  const deliveriesToday = events.length + truckQueue.length + ingestCount;
+  const verifiedDeliveries = Math.max(0, deliveriesToday - anomalyCount - escalations.length);
+  const verificationSuccessRate = Math.max(0, Math.min(100, Math.round((verifiedDeliveries / Math.max(1, deliveriesToday)) * 100)));
+  const materialVolumeVerified = [...events, ...truckQueue].reduce((sum, item) => sum + item.volumeTons, 0);
+  const activeWorkflowIndex = tick % WORKFLOW.length;
+  const activeWorkflow = WORKFLOW[activeWorkflowIndex];
   const missionCards = [
-    { label: "Live ingests", value: ingestCount, tone: "text-cyan-100", hint: "streamed into the mission lane" },
-    { label: "Queued for review", value: reviewCount, tone: "text-emerald-100", hint: "ready for operator assignment" },
-    { label: "Anomalies", value: anomalyCount, tone: "text-rose-100", hint: "flagged for escalation" }
-  ];
-  const triageRows = [
-    { label: "Gate checks", value: `${Math.max(2, events.length - anomalyCount)} passing`, tone: "bg-emerald-500/10 text-emerald-100" },
-    { label: "Invoice review", value: `${Math.max(1, anomalyCount)} pending`, tone: "bg-amber-500/10 text-amber-100" },
-    { label: "Escalations", value: `${anomalyCount > 0 ? 1 : 0} open`, tone: "bg-rose-500/10 text-rose-100" }
+    { label: "Deliveries Today", value: deliveriesToday, tone: "text-cyan-100", hint: "trucks processed through the site" },
+    { label: "Verified Deliveries", value: verifiedDeliveries, tone: "text-emerald-100", hint: "closed without exception" },
+    { label: "Flagged Deliveries", value: anomalyCount, tone: "text-rose-100", hint: "sent to review" },
+    { label: "Active Investigations", value: escalations.length, tone: "text-amber-100", hint: "open cases in progress" },
+    { label: "Verification Success Rate", value: `${verificationSuccessRate}%`, tone: "text-white", hint: "deliveries verified end to end" },
+    { label: "Material Volume Verified", value: `${materialVolumeVerified.toFixed(1)} t`, tone: "text-cyan-100", hint: "net tonnage confirmed" }
   ];
 
   return (
@@ -181,15 +202,15 @@ const CommandCenter = () => {
             <div className="max-w-3xl space-y-3">
               <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-slate-400">
                 <Waves className="h-4 w-4 text-cyan-300" />
-                live mission control
-                <span className="border border-white/10 bg-white/4 px-3 py-1 text-slate-300">evidence-first triage</span>
+                what is happening at the site right now
+                <span className="border border-white/10 bg-white/4 px-3 py-1 text-slate-300">operational outcomes</span>
               </div>
               <h2 className="font-display text-2xl font-semibold tracking-[-0.03em] text-white md:text-4xl">Command Center</h2>
               <p className="max-w-3xl text-sm leading-6 text-slate-300 md:text-base">
-                Every ingested vehicle becomes an operational record, every exception is routed to review, and every queue remains visible until an operator closes the loop.
+                Site arrivals move through capture, verification, reconciliation, and closure. The screen is organized to answer the only question that matters: what is happening now?
               </p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {missionCards.map((card) => (
                 <div key={card.label} className="border border-white/10 bg-slate-950/70 p-3">
                   <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">{card.label}</p>
@@ -200,21 +221,39 @@ const CommandCenter = () => {
             </div>
           </div>
 
-          <div className="mt-5 grid gap-3 md:grid-cols-3">
-            {triageRows.map((row) => (
-              <div key={row.label} className={`border border-white/10 px-3 py-3 ${row.tone}`}>
-                <p className="text-[10px] uppercase tracking-[0.22em] text-inherit/70">{row.label}</p>
-                <p className="mt-1 text-sm font-semibold text-white">{row.value}</p>
+          <div className="mt-5 border border-cyan-400/15 bg-cyan-500/8 px-4 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.22em] text-cyan-200/80">Live workflow banner</p>
+                <p className="mt-1 text-sm text-slate-300">{activeWorkflow.label} is active. Trucks move through the same sequence until a verified record is created.</p>
               </div>
-            ))}
+              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-slate-400">
+                <span className="h-2 w-2 rounded-full bg-cyan-300 pulse-ring" />
+                moving now
+              </div>
+            </div>
+            <div className="mt-4 grid gap-2 md:grid-cols-6">
+              {WORKFLOW.map((step, index) => {
+                const isActive = index === activeWorkflowIndex;
+                const isComplete = index < activeWorkflowIndex;
+                return (
+                  <div key={step.label} className={`relative border px-3 py-3 ${isActive ? "border-cyan-400/30 bg-cyan-500/15" : isComplete ? "border-emerald-400/20 bg-emerald-500/10" : "border-white/10 bg-white/4"}`}>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">{String(index + 1).padStart(2, "0")}</p>
+                    <p className="mt-2 text-sm font-medium text-white">{step.label}</p>
+                    <p className="mt-1 text-[11px] text-slate-400">{isActive ? step.detail : isComplete ? "Completed" : "Pending"}</p>
+                    {index < WORKFLOW.length - 1 ? <ArrowRight className="absolute -right-2 top-1/2 hidden h-4 w-4 -translate-y-1/2 text-slate-500 md:block" /> : null}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <div className="mt-5 grid gap-3 lg:grid-cols-4">
             {[
-              { label: "Queue depth", value: truckQueue.length, tone: "text-cyan-100", pulse: true },
-              { label: "Active escalations", value: escalations.length, tone: "text-rose-100", pulse: anomalyCount > 0 },
-              { label: "Operators engaged", value: Math.max(1, operatorInterventions.length), tone: "text-emerald-100", pulse: true },
-              { label: "Verification stage", value: verificationSteps.find((step) => step.state === "active")?.label || "Standby", tone: "text-white", pulse: false }
+              { label: "Current movement", value: activeWorkflow.label, tone: "text-cyan-100", pulse: true },
+              { label: "In lane now", value: truckQueue.length, tone: "text-emerald-100", pulse: true },
+              { label: "Closed today", value: verifiedDeliveries, tone: "text-white", pulse: false },
+              { label: "Attention required", value: anomalyCount, tone: "text-rose-100", pulse: anomalyCount > 0 }
             ].map((item) => (
               <div key={item.label} className="border border-white/10 bg-slate-950/70 p-3">
                 <div className="flex items-center justify-between gap-3">
@@ -231,8 +270,8 @@ const CommandCenter = () => {
           <section className="border border-white/10 bg-slate-950/65 p-3">
             <div className="flex flex-wrap items-center justify-between gap-3 px-3">
               <div>
-                <p className="text-[10px] uppercase tracking-[0.16em] text-slate-400">Live truck queue</p>
-                <p className="mt-1 text-sm text-slate-300">Insertion, movement, and hold state stay visible in real time.</p>
+                  <p className="text-[10px] uppercase tracking-[0.16em] text-slate-400">Live truck queue</p>
+                  <p className="mt-1 text-sm text-slate-300">Deliveries move through arrival, verification, reconciliation, and closure in sequence.</p>
               </div>
               <div className="flex items-center gap-2 text-xs text-slate-400">
                 <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -249,7 +288,7 @@ const CommandCenter = () => {
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-white">{item.plate}</p>
-                        <p className="mt-1 truncate text-xs text-slate-400">{item.supplier} · {item.material}</p>
+                        <p className="mt-1 truncate text-xs text-slate-400">{item.supplier} · {item.material} · {item.volumeTons.toFixed(1)} t</p>
                       </div>
                       <div className="text-right">
                         <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">{item.stage}</p>
@@ -264,7 +303,7 @@ const CommandCenter = () => {
                     </div>
                     <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
                       <span className={`inline-block h-2 w-2 rounded-full ${item.anomaly ? "bg-rose-400 pulse-ring" : index === 0 ? "bg-cyan-300 pulse-ring" : "bg-emerald-400"}`} />
-                      <span>{item.anomaly ? "anomaly detected" : index === 0 ? "currently moving" : "queued"}</span>
+                      <span>{item.anomaly ? "flagged for review" : index === 0 ? "currently moving" : "queued"}</span>
                       <span className="mx-1">•</span>
                       <span>weighbridge lane 3</span>
                     </div>
@@ -356,7 +395,7 @@ const CommandCenter = () => {
                 </div>
                 <div className="flex items-center gap-2 text-xs text-slate-400">
                   <Clock3 className="h-4 w-4 text-cyan-300" />
-                  <span>Next operator assignment queued.</span>
+                  <span>Next workflow step: {activeWorkflow.label}.</span>
                 </div>
                 {latestEvent?.anomaly ? (
                   <div className="flex items-center gap-2 border border-rose-400/20 bg-rose-500/10 px-2 py-2 text-xs text-rose-100">
